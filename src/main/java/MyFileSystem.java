@@ -17,7 +17,7 @@ public class MyFileSystem implements FileSystem {
         count++;
     }
 
-    MyFileSystem() {
+    public MyFileSystem() {
         root.setFather(root);
     }
 
@@ -32,8 +32,7 @@ public class MyFileSystem implements FileSystem {
     }
 
     public Dir findDir(Dir root, String path) throws PathException {
-
-        Dir nowTempDir = null;
+        Dir nowTempDir = root;
         for (String temp : path.split("/+")) {
             if (!temp.equals("")) {
                 nowTempDir = root.getDir(temp);
@@ -68,7 +67,7 @@ public class MyFileSystem implements FileSystem {
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
         int i = 0;
-        for (i = root.getName().equals("/") ? 1 : 0; i < dirs.length; ++i) {
+        for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
                 if (i == dirs.length - 1) {
@@ -77,6 +76,7 @@ public class MyFileSystem implements FileSystem {
                         throw new PathException(path);
                     } else {
                         result = nowTempDir.getPath() + "/" + dirs[i];
+                        result = result.replaceAll("/+", "/");
                         nowTempDir.addDir(new Dir(dirs[i], result, count, nowTempDir));
                         break;
                     }
@@ -125,6 +125,7 @@ public class MyFileSystem implements FileSystem {
                     throw new PathException(path);
                 } else {
                     result = nowTempDir.getPath() + "/" + dirs[i];
+                    result = result.replaceAll("/+", "/");
                     loopDir = new Dir(dirs[i], result, count, nowTempDir);
                     nowTempDir.addDir(loopDir);
                 }
@@ -158,7 +159,25 @@ public class MyFileSystem implements FileSystem {
 
     public String information(String path) throws FileSystemException {
         update();
-        Dir targetDir = findDir(path.charAt(0) == '/' ? root : nowDir, path);
+        Dir targetDir = null;// = findDir(path.charAt(0) == '/' ? root : nowDir, path);
+
+        Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
+
+        Dir temproot = root;
+        String[] dirs = path.split("/+");
+        int len = dirs.length ;
+        for ( int i= 0; i < len-1 ;++i){
+            if (!dirs[i].equals("")){
+                nowTempDir = temproot.getDir(dirs[i]);
+                if (nowTempDir == null) {
+                    throw new PathException(path);
+                }
+                temproot = nowTempDir;
+            }
+        }
+        // root beigaile
+        targetDir = nowTempDir.getDir(dirs[len-1]);
+
         if (targetDir == null) {
             File targetFile = findFile(path.charAt(0) == '/' ? root : nowDir, path);
             if (targetFile == null) {
@@ -166,6 +185,7 @@ public class MyFileSystem implements FileSystem {
             }
             return targetFile.info();
         }
+
         return targetDir.info();
     }
 
@@ -258,15 +278,16 @@ public class MyFileSystem implements FileSystem {
     public File createFile(String path) throws FileSystemException{
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         File result;
+        Dir tempRoot = root;
         String[] dirs = path.split("/+");
         int len = dirs.length ;
         for ( int i= 0; i < len-1 ;++i){
             if (!dirs[i].equals("")){
-                nowTempDir = root.getDir(dirs[i]);
+                nowTempDir = tempRoot.getDir(dirs[i]);
                 if (nowTempDir == null) {
                     throw new PathException(path);
                 }
-                root = nowTempDir;
+                tempRoot = nowTempDir;
             }
         }
 

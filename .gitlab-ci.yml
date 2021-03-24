@@ -1,0 +1,33 @@
+image: local-registry.inner.buaaoo.top/library/java:8u201-edu
+
+stages:
+  - demo
+  - test
+  - submit
+
+variables:
+  CI: 'true'
+
+before_script:
+  - java -version
+  - javac -version
+  - mvn -v
+
+run_demo:
+  stage: demo
+  script:
+    - echo 'this is my demo'  # place your demo here
+
+run_unittest:
+  stage: test
+  script:
+    - echo "this is unit test"  # run your unittest here, coverage and its details is required
+
+submit_code:
+  stage: submit
+  script:
+    - pjcourse config add judge  # register the judge service
+    - pjcourse config info judge  # try connect to the judge service
+    - pjcourse homework list judge  # get to know all the available homeworks
+    - pjcourse homework submit judge homework_1  # submit your homework (homework_1 is the name of homework, may be changed when 2st, 3rd homeworks)
+    - pjcourse homework history judge homework_1  # get your submit history

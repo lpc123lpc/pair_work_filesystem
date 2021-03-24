@@ -57,6 +57,7 @@ public class Dir {
 
     public void setFather(Dir father) {
         this.father = father;
+        subDir.put("..", father);
     }
 
     public void setLastTime(int lastTime) {
@@ -77,8 +78,10 @@ public class Dir {
     }
 
     public void delete() {
-        for (Dir temp : subDir.values()) {
-            temp.delete();
+        for (Map.Entry<String, Dir> temp : subDir.entrySet()) {
+            if (!temp.getKey().equals(".") && !temp.getKey().equals("..")) {
+                temp.getValue().delete();
+            }
         }
         subDir.clear();
         subFile.clear();
@@ -94,14 +97,17 @@ public class Dir {
         fileSet.addAll(subDir.keySet());
         StringBuilder out = new StringBuilder();
         for (String name : fileSet) {
-            out.append(name).append(" ");
+            if (!name.equals(".") && !name.equals("..")) {
+                out.append(name).append(" ");
+            }
+
         }
         return out.toString();
     }
 
     public int getSize() {
         int size = 0;
-        for ( Map.Entry<String, Dir> temp : subDir.entrySet()) {
+        for (Map.Entry<String, Dir> temp : subDir.entrySet()) {
             if (!temp.getKey().equals(".") && !temp.getKey().equals("..")) {
                 size += temp.getValue().getSize();
             }
@@ -124,8 +130,8 @@ public class Dir {
         subDir.put(dir.getName(), dir);
     }
 
-    public void addFile(File file){
-        subFile.put(file.getName(),file);
+    public void addFile(File file) {
+        subFile.put(file.getName(), file);
     }
 
 }
