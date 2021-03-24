@@ -78,6 +78,7 @@ public class MyFileSystem implements FileSystem {
                         result = nowTempDir.getPath() + "/" + dirs[i];
                         result = result.replaceAll("/+", "/");
                         nowTempDir.addDir(new Dir(dirs[i], result, count, nowTempDir));
+                        nowTempDir.setLastTime(count);
                         break;
                     }
                 } else {
@@ -127,6 +128,7 @@ public class MyFileSystem implements FileSystem {
                     result = result.replaceAll("/+", "/");
                     loopDir = new Dir(dirs[i], result, count, nowTempDir);
                     nowTempDir.addDir(loopDir);
+                    nowTempDir.setLastTime(count);
                 }
             }
             nowTempDir = loopDir;
@@ -237,6 +239,7 @@ public class MyFileSystem implements FileSystem {
         else{
             Dir father = file.getFather();
             father.getSubFile().remove(file.getName());
+            father.setLastTime(count);
             return file.getPath();
         }
     }
