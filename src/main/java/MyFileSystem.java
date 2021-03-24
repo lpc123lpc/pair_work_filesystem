@@ -296,7 +296,7 @@ public class MyFileSystem implements FileSystem {
             if (nowTempDir.getSubDir().containsKey(dirs[len-1]) || !nameIsValid(dirs[len-1])) {
                 throw new PathException(path);
             }
-            result = new File(dirs[len-1],nowTempDir.getPath()+"/"+dirs[len-1],count,nowTempDir);
+            result = new File(dirs[len-1],(nowTempDir.getPath()+"/"+dirs[len-1]).replaceAll("/+", "/"),count,nowTempDir);
             nowTempDir.addFile(result);
 
         }
