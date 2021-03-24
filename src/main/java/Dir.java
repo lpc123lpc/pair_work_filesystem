@@ -68,14 +68,6 @@ public class Dir {
         this.name = name;
     }
 
-    public void mkdir(String name, Dir dir) {
-        this.subDir.put(name, dir);
-    }
-
-    public void touch(String name, File file) {
-        this.subFile.put(name, file);
-        // add file
-    }
 
     public void delete() {
         for (Map.Entry<String, Dir> temp : subDir.entrySet()) {
@@ -134,4 +126,8 @@ public class Dir {
         subFile.put(file.getName(), file);
     }
 
+    @Override
+    public String toString() {
+        return path;
+    }
 }
