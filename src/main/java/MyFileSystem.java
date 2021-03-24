@@ -112,8 +112,7 @@ public class MyFileSystem implements FileSystem {
         }
     }
 
-    public String mkdirP(String path, Dir root) throws FileSystemException{
-
+    public String mkdirP(String path, Dir root) throws FileSystemException {
         String result = null;
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
@@ -132,7 +131,8 @@ public class MyFileSystem implements FileSystem {
             }
             nowTempDir = loopDir;
         }
-        return result;
+
+        return nowTempDir.getPath();
     }
 
 
