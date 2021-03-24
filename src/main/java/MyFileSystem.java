@@ -159,14 +159,12 @@ public class MyFileSystem implements FileSystem {
 
     public String information(String path) throws FileSystemException {
         update();
-        Dir targetDir = null;// = findDir(path.charAt(0) == '/' ? root : nowDir, path);
-
+        Dir targetDir = null;
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
-
-        Dir temproot = root;
+        Dir temproot = nowTempDir;
         String[] dirs = path.split("/+");
         int len = dirs.length ;
-        for ( int i= 0; i < len-1 ;++i){
+        for ( int i= 0; i < len-1 ;++i) {
             if (!dirs[i].equals("")){
                 nowTempDir = temproot.getDir(dirs[i]);
                 if (nowTempDir == null) {
