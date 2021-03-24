@@ -249,22 +249,26 @@ public class MyFileSystem implements FileSystem {
             file.write(content,count);
             file.getFather().setLastTime(count);
         }
-        else{
-            file.write(content,count);
-            file.getFather().setLastTime(count);
+        else {
+            if (!content.equals(file.cat())) {
+                file.write(content,count);
+            }
         }
     }
 
     public void fileAppend(String path, String content) throws FileSystemException {
         update();
+        boolean flag = content.equals("");
         File file = findFile(path.charAt(0)=='/' ? root : nowDir,path);
         if (file == null) {
             file = createFile(path);
-            file.write(content,count);
+            fileWrite(path, content);
             file.getFather().setLastTime(count);
         }
-        else{
-            file.append(content,count);
+        else {
+            if (!flag) {
+                file.append(content,count);
+            }
         }
     }
 
