@@ -13,12 +13,12 @@ public class MyFileSystem implements FileSystem {
     private Dir nowDir = root;
     private PathException pathException;
 
-    private void update() {
-        count++;
-    }
-
     public MyFileSystem() {
         root.setFather(root);
+    }
+
+    private void update() {
+        count++;
     }
 
     public String changeDirectory(String path) throws FileSystemException {
@@ -138,7 +138,6 @@ public class MyFileSystem implements FileSystem {
     }
 
 
-
     public String removeRecursively(String path) throws FileSystemException {
         update();
         String rightPath = path.replaceAll("/+", "/");
@@ -165,9 +164,9 @@ public class MyFileSystem implements FileSystem {
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         Dir temproot = nowTempDir;
         String[] dirs = path.split("/+");
-        int len = dirs.length ;
-        for ( int i= 0; i < len-1 ;++i) {
-            if (!dirs[i].equals("")){
+        int len = dirs.length;
+        for (int i = 0; i < len - 1; ++i) {
+            if (!dirs[i].equals("")) {
                 nowTempDir = temproot.getDir(dirs[i]);
                 if (nowTempDir == null) {
                     throw new PathException(path);
@@ -176,7 +175,7 @@ public class MyFileSystem implements FileSystem {
             }
         }
         // root beigaile
-        targetDir = nowTempDir.getDir(dirs[len-1]);
+        targetDir = nowTempDir.getDir(dirs[len - 1]);
 
         if (targetDir == null) {
             File targetFile = findFile(path.charAt(0) == '/' ? root : nowDir, path);
@@ -190,24 +189,16 @@ public class MyFileSystem implements FileSystem {
     }
 
 
-
-
-
-
-
-
-
-
     ////// hhhh  sbsbsbsbbsbsbsbsbs
     // fuck file
-    public File findFile(Dir root,String path) throws FileSystemException{
+    public File findFile(Dir root, String path) throws FileSystemException {
         Dir nowTempDir = root;
         File result = null;
 
         String[] dirs = path.split("/+");
-        int len = dirs.length ;
-        for ( int i= 0; i < len-1 ;++i){
-            if (!dirs[i].equals("")){
+        int len = dirs.length;
+        for (int i = 0; i < len - 1; ++i) {
+            if (!dirs[i].equals("")) {
                 nowTempDir = root.getDir(dirs[i]);
                 if (nowTempDir == null) {
                     throw new PathException(path);
@@ -216,13 +207,13 @@ public class MyFileSystem implements FileSystem {
             }
         }
 
-        result = nowTempDir.getFile(dirs[len-1]);
+        result = nowTempDir.getFile(dirs[len - 1]);
         return result;
     }
 
     public String catFile(String path) throws FileSystemException {
         update();
-        File file = findFile(path.charAt(0)=='/' ? root : nowDir,path);
+        File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             throw new PathException(path);
         }
@@ -231,12 +222,11 @@ public class MyFileSystem implements FileSystem {
 
     public String removeFile(String path) throws FileSystemException {
         update();
-        File file = findFile(path.charAt(0)=='/' ? root : nowDir,path);
+        File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
 
         if (file == null) {
             throw new PathException(path);
-        }
-        else{
+        } else {
             Dir father = file.getFather();
             father.getSubFile().remove(file.getName());
             father.setLastTime(count);
@@ -246,28 +236,25 @@ public class MyFileSystem implements FileSystem {
 
     public void fileWrite(String path, String content) throws FileSystemException {
         update();
-        File file = findFile(path.charAt(0)=='/' ? root : nowDir,path);
+        File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             file = createFile(path);
-            file.write(content,count);
+            file.write(content, count);
             file.getFather().setLastTime(count);
-        }
-        else {
-            file.write(content,count);
+        } else {
+            file.write(content, count);
         }
     }
 
     public void fileAppend(String path, String content) throws FileSystemException {
         update();
-        boolean flag = content.equals("");
-        File file = findFile(path.charAt(0)=='/' ? root : nowDir,path);
+        File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             file = createFile(path);
             fileWrite(path, content);
             file.getFather().setLastTime(count);
-        }
-        else {
-            file.append(content,count);
+        } else {
+            file.append(content, count);
         }
     }
 
@@ -276,14 +263,14 @@ public class MyFileSystem implements FileSystem {
         createFile(path);
     }
 
-    public File createFile(String path) throws FileSystemException{
+    public File createFile(String path) throws FileSystemException {
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         File result;
         Dir tempRoot = nowTempDir;
         String[] dirs = path.split("/+");
-        int len = dirs.length ;
-        for ( int i= 0; i < len-1 ;++i){
-            if (!dirs[i].equals("")){
+        int len = dirs.length;
+        for (int i = 0; i < len - 1; ++i) {
+            if (!dirs[i].equals("")) {
                 nowTempDir = tempRoot.getDir(dirs[i]);
                 if (nowTempDir == null) {
                     throw new PathException(path);
@@ -292,12 +279,12 @@ public class MyFileSystem implements FileSystem {
             }
         }
 
-        result = nowTempDir.getFile(dirs[len-1]);
+        result = nowTempDir.getFile(dirs[len - 1]);
         if (result == null) {
-            if (nowTempDir.getSubDir().containsKey(dirs[len-1]) || !nameIsValid(dirs[len-1])) {
+            if (nowTempDir.getSubDir().containsKey(dirs[len - 1]) || !nameIsValid(dirs[len - 1])) {
                 throw new PathException(path);
             }
-            result = new File(dirs[len-1],(nowTempDir.getPath()+"/"+dirs[len-1]).replaceAll("/+", "/"),count,nowTempDir);
+            result = new File(dirs[len - 1], (nowTempDir.getPath() + "/" + dirs[len - 1]).replaceAll("/+", "/"), count, nowTempDir);
             nowTempDir.addFile(result);
             nowTempDir.setLastTime(count);
         }
