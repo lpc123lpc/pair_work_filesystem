@@ -161,6 +161,12 @@ public class MyFileSystemTest {
         } catch (FileSystemException e) {
             e.printStackTrace();
         }
+
+        try {
+            myFs.fileWrite("/jj/test.java", "public");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
