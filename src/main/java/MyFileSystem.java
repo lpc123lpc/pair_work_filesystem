@@ -250,9 +250,7 @@ public class MyFileSystem implements FileSystem {
             file.getFather().setLastTime(count);
         }
         else {
-            if (!content.equals(file.cat())) {
-                file.write(content,count);
-            }
+            file.write(content,count);
         }
     }
 
@@ -266,9 +264,7 @@ public class MyFileSystem implements FileSystem {
             file.getFather().setLastTime(count);
         }
         else {
-            if (!flag) {
-                file.append(content,count);
-            }
+            file.append(content,count);
         }
     }
 
@@ -280,7 +276,7 @@ public class MyFileSystem implements FileSystem {
     public File createFile(String path) throws FileSystemException{
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         File result;
-        Dir tempRoot = root;
+        Dir tempRoot = nowTempDir;
         String[] dirs = path.split("/+");
         int len = dirs.length ;
         for ( int i= 0; i < len-1 ;++i){
@@ -300,9 +296,9 @@ public class MyFileSystem implements FileSystem {
             }
             result = new File(dirs[len-1],(nowTempDir.getPath()+"/"+dirs[len-1]).replaceAll("/+", "/"),count,nowTempDir);
             nowTempDir.addFile(result);
-
+            nowTempDir.setLastTime(count);
         }
-        nowTempDir.setLastTime(count);
+        result.setLastTime(count);
         return result;
     }
 
