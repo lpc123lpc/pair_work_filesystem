@@ -39,6 +39,8 @@ run_unittest:
     - mvn cobertura:cobertura
     - mvn cobertura:dump-datafile
     - cp -r target/site/cobertura test_result
+    - pjcourse judge result judge homework_1_final  # 查看详细信息
+    - pjcourse judge result judge homework_1_final -a  # 查看摘要信息
   artifacts:
     name: test_result
     paths:
@@ -46,14 +48,14 @@ run_unittest:
     expire_in: 1 yrs
   coverage: '/coverage line-rate="\d+/'
 
-submit_code:
-  stage: submit
-  script:
-    - pjcourse config add judge  # register the judge service
-    - pjcourse config info judge  # try connect to the judge service
-    - pjcourse homework list judge  # get to know all the available homeworks
-    - pjcourse homework submit judge homework_1  # submit your homework (homework_1 is the name of homework, may be changed when 2st, 3rd homeworks)
-    - pjcourse homework history judge homework_1  # get your submit history
-    - pjcourse judge result judge homework_1_final  # 查看详细信息
-    - pjcourse judge result judge homework_1_final -a  # 查看摘要信息
+#submit_code:
+#  stage: submit
+#  script:
+#    - pjcourse config add judge  # register the judge service
+#    - pjcourse config info judge  # try connect to the judge service
+#    - pjcourse homework list judge  # get to know all the available homeworks
+#    - pjcourse homework submit judge homework_1  # submit your homework (homework_1 is the name of homework, may be changed when 2st, 3rd homeworks)
+#    - pjcourse homework history judge homework_1  # get your submit history
+#    - pjcourse judge result judge homework_1_final  # 查看详细信息
+#    - pjcourse judge result judge homework_1_final -a  # 查看摘要信息
 
