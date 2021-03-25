@@ -7,6 +7,15 @@ stages:
 
 variables:
   CI: 'true'
+  ZIP_URL: 'https://releases.buaaoo.top/homework_1_specs1/specs-homework-1-1.1-raw-jar-with-dependencies.zip'
+  ZIP_NAME: 'specs-homework-1-1.1-raw-jar-with-dependencies'
+  UNZIP_SPEC1_PASSWORD: '/OmYVDHCF8B/mTKCxW3D3kJK/HpZP3QEMwDJySJ1rjA='
+  ZIP_DIRECTORY: 'spec'
+  JAR_NAME: 'specs-homework-1-1.1-raw-jar-with-dependencies'
+  SPEC_GROUP_ID: 'com.fileutils'
+  SPEC_ARTIFACT_ID: 'specs1'
+  SPEC_VERSION: '1.1.1'
+
 
 before_script:
   - java -version
@@ -21,7 +30,21 @@ run_demo:
 run_unittest:
   stage: test
   script:
-    - echo "this is unit test"  # run your unittest here, coverage and its details is required
+    - apt-get install zip -y
+    - curl ${ZIP_URL} --output ${ZIP_NAME}
+    - unzip -P ${UNZIP_SPEC1_PASSWORD} ${ZIP_NAME} -d ${ZIP_DIRECTORY}
+    - mv ${ZIP_DIRECTORY}/*.jar ${JAR_NAME}
+    - mvn install:install-file -Dfile=${JAR_NAME} -DgroupId=${SPEC_GROUP_ID} -DartifactId=${SPEC_ARTIFACT_ID} -Dversion=${SPEC_VERSION} -Dpackaging=jar
+    - mvn compile
+    - mvn cobertura:cobertura
+    - mvn cobertura:dump-datafile
+    - cp -r target/site/cobertura test_result
+  artifacts:
+    name: test_result
+    paths:
+      - test_result/
+    expire_in: 1 yrs
+  coverage: '/coverage line-rate="\d+/'
 
 submit_code:
   stage: submit
