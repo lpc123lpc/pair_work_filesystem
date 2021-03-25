@@ -64,6 +64,7 @@ public class MyFileSystem implements FileSystem {
 
     public String mkdir(String path, Dir root) throws FileSystemException {
         String result = null;
+        rootChange(path); /// mkdir /  path = "/" , path.split = [];
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
         int i = 0;
@@ -106,6 +107,7 @@ public class MyFileSystem implements FileSystem {
 
     public String makeDirectoryRecursively(String path) throws FileSystemException {
         update();
+
         if (path.charAt(0) == '/') {
             return mkdirP(path, root);
         } else {
@@ -118,7 +120,7 @@ public class MyFileSystem implements FileSystem {
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
         int i = 0;
-        for (i = root.getName().equals("/") ? 1 : 0; i < dirs.length; ++i) {
+        for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
                 if (nowTempDir.getFile(dirs[i]) != null || !nameIsValid(dirs[i])) {
@@ -133,17 +135,19 @@ public class MyFileSystem implements FileSystem {
             }
             nowTempDir = loopDir;
         }
-
         return nowTempDir.getPath();
     }
 
+    public void rootChange(String path) throws FileSystemException{
+        if (path.equals("/")) {
+            throw new PathException(path);
+        }
+    }
 
     public String removeRecursively(String path) throws FileSystemException {
         update();
         String rightPath = path.replaceAll("/+", "/");
-        if (rightPath.equals("/")) {
-            throw new PathException(path);
-        }
+        rootChange(path);
         Dir targetDir = findDir(rightPath.charAt(0) == '/' ? root : nowDir, path);
         Dir loopDir = nowDir;
         while (!loopDir.getName().equals("/")) {
@@ -152,6 +156,9 @@ public class MyFileSystem implements FileSystem {
             }
             loopDir = loopDir.getFather();
         }
+        if (targetDir.getName().equals("/")) {
+            throw new PathException(path);
+        } //if targetDir is root ,exception
         targetDir.delete();
         targetDir.getFather().getSubDir().remove(targetDir.getName());
         targetDir.getFather().setLastTime(count);
@@ -174,11 +181,14 @@ public class MyFileSystem implements FileSystem {
                 temproot = nowTempDir;
             }
         }
-        // root beigaile
+        // root file    info /   special just
+        if (path.equals("/")){
+            return root.info();
+        }
         targetDir = nowTempDir.getDir(dirs[len - 1]);
 
         if (targetDir == null) {
-            File targetFile = findFile(path.charAt(0) == '/' ? root : nowDir, path);
+            File targetFile = findFile(path.charAt(0) == '/' ? root : nowDir, path);// better ?
             if (targetFile == null) {
                 throw new PathException(path);
             }
@@ -194,7 +204,7 @@ public class MyFileSystem implements FileSystem {
     public File findFile(Dir root, String path) throws FileSystemException {
         Dir nowTempDir = root;
         File result = null;
-
+        rootChange(path);
         String[] dirs = path.split("/+");
         int len = dirs.length;
         for (int i = 0; i < len - 1; ++i) {
@@ -260,6 +270,7 @@ public class MyFileSystem implements FileSystem {
 
     public void touchFile(String path) throws FileSystemException {
         update();
+        rootChange(path);
         createFile(path);
     }
 
@@ -267,6 +278,7 @@ public class MyFileSystem implements FileSystem {
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         File result;
         Dir tempRoot = nowTempDir;
+        rootChange(path);
         String[] dirs = path.split("/+");
         int len = dirs.length;
         for (int i = 0; i < len - 1; ++i) {

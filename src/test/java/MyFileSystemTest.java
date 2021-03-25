@@ -108,7 +108,6 @@ public class MyFileSystemTest {
             assertTrue(e instanceof PathException);
         }
 
-
     }
 
     @Test
@@ -141,7 +140,6 @@ public class MyFileSystemTest {
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathException);
         }
-
     }
 
     @Test
