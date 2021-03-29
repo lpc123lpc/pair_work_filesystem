@@ -17,12 +17,21 @@ public class MyFileSystem implements FileSystem {
         root.setFather(root);
     }
 
-    private void update() {
+    private void update() throws FileSystemException{
         count++;
+        //
     }
+
+    private void pathLenInvalid(String path) throws FileSystemException{
+        if (path.length()>4096){
+            throw new PathException(path);
+        }
+    }
+
 
     public String changeDirectory(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         if (path.charAt(0) == '/') {
             nowDir = findDir(root, path);
         } else {
@@ -47,12 +56,14 @@ public class MyFileSystem implements FileSystem {
 
     public String list(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         Dir targetDir = findDir(path.charAt(0) == '/' ? root : nowDir, path);
         return targetDir.ls();
     }
 
     public String makeDirectory(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         String result = null;
         if (path.charAt(0) == '/') {
             result = mkdir(path, root);
@@ -107,7 +118,7 @@ public class MyFileSystem implements FileSystem {
 
     public String makeDirectoryRecursively(String path) throws FileSystemException {
         update();
-
+        pathLenInvalid(path);
         if (path.charAt(0) == '/') {
             return mkdirP(path, root);
         } else {
@@ -146,6 +157,7 @@ public class MyFileSystem implements FileSystem {
 
     public String removeRecursively(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         String rightPath = path.replaceAll("/+", "/");
         rootChange(path);
         Dir targetDir = findDir(rightPath.charAt(0) == '/' ? root : nowDir, path);
@@ -167,6 +179,7 @@ public class MyFileSystem implements FileSystem {
 
     public String information(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         Dir targetDir = null;
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         Dir temproot = nowTempDir;
@@ -223,6 +236,7 @@ public class MyFileSystem implements FileSystem {
 
     public String catFile(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             throw new PathException(path);
@@ -232,6 +246,7 @@ public class MyFileSystem implements FileSystem {
 
     public String removeFile(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
 
         if (file == null) {
@@ -246,6 +261,7 @@ public class MyFileSystem implements FileSystem {
 
     public void fileWrite(String path, String content) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             file = createFile(path);
@@ -257,19 +273,21 @@ public class MyFileSystem implements FileSystem {
     }
 
     public void fileAppend(String path, String content) throws FileSystemException {
-        update();
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             file = createFile(path);
             fileWrite(path, content);
             file.getFather().setLastTime(count);
         } else {
+            update();
+            pathLenInvalid(path);
             file.append(content, count);
         }
     }
 
     public void touchFile(String path) throws FileSystemException {
         update();
+        pathLenInvalid(path);
         rootChange(path);
         createFile(path);
     }

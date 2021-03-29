@@ -54,7 +54,8 @@ public class File {
 
     public void append(String content,int lastTime){
         this.lastTime = lastTime;
-        this.content = this.content + content.replaceAll("@n","\n");;
+
+        this.content = (this.content + content).replaceAll("@n","\n");;
     }
 
     public String info(){
