@@ -1,30 +1,33 @@
-import com.fileutils.specs1.models.FileSystem;
-import com.fileutils.specs1.models.FileSystemException;
-import exceptions.PathException;
+import com.fileutils.specs2.models.FileSystem;
+import com.fileutils.specs2.models.FileSystemException;
+import exceptions.PathInvalidException;
 
-import java.awt.print.PrinterAbortException;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MyFileSystem implements FileSystem {
-    private int count = 0;
+
     private Dir root = new Dir("/", "/", 0, null);
     private Dir nowDir = root;
-    private PathException pathException;
+    private PathInvalidException pathInvalidException;
+    private Manager manager;
 
     public MyFileSystem() {
         root.setFather(root);
+        manager = Manager.getInstance();
+        manager.setCount(0);
+        manager.setNowDir(root);
+        manager.setRootPath(root);
     }
 
     private void update() throws FileSystemException{
-        count++;
+        manager.update();
         //
     }
 
     private void pathLenInvalid(String path) throws FileSystemException{
         if (path.length()>4096){
-            throw new PathException(path);
+            throw new PathInvalidException(path);
         }
     }
 
@@ -33,20 +36,22 @@ public class MyFileSystem implements FileSystem {
         update();
         pathLenInvalid(path);
         if (path.charAt(0) == '/') {
+
             nowDir = findDir(root, path);
         } else {
             nowDir = findDir(nowDir, path);
         }
+        manager.setNowDir(nowDir);
         return nowDir.getPath();
     }
 
-    public Dir findDir(Dir root, String path) throws PathException {
+    public Dir findDir(Dir root, String path) throws PathInvalidException {
         Dir nowTempDir = root;
         for (String temp : path.split("/+")) {
             if (!temp.equals("")) {
                 nowTempDir = root.getDir(temp);
                 if (nowTempDir == null) {
-                    throw new PathException(path);
+                    throw new PathInvalidException(path);
                 }
                 root = nowTempDir;
             }
@@ -85,22 +90,22 @@ public class MyFileSystem implements FileSystem {
                 if (i == dirs.length - 1) {
                     // mkdir /
                     if (nowTempDir.getFile(dirs[i]) != null || !nameIsValid(dirs[i])) {
-                        throw new PathException(path);
+                        throw new PathInvalidException(path);
                     } else {
                         result = nowTempDir.getPath() + "/" + dirs[i];
                         result = result.replaceAll("/+", "/");
-                        nowTempDir.addDir(new Dir(dirs[i], result, count, nowTempDir));
-                        nowTempDir.setLastTime(count);
+                        nowTempDir.addDir(new Dir(dirs[i], result, manager.getCount(), nowTempDir));
+                        nowTempDir.setLastTime(manager.getCount());
                         break;
                     }
                 } else {
-                    throw new PathException(path);
+                    throw new PathInvalidException(path);
                 }
             }
             nowTempDir = loopDir;
         }
         if (i == dirs.length) {
-            throw new PathException(path);
+            throw new PathInvalidException(path);
         }
         return result;
     }
@@ -135,13 +140,13 @@ public class MyFileSystem implements FileSystem {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
                 if (nowTempDir.getFile(dirs[i]) != null || !nameIsValid(dirs[i])) {
-                    throw new PathException(path);
+                    throw new PathInvalidException(path);
                 } else {
                     result = nowTempDir.getPath() + "/" + dirs[i];
                     result = result.replaceAll("/+", "/");
-                    loopDir = new Dir(dirs[i], result, count, nowTempDir);
+                    loopDir = new Dir(dirs[i], result, manager.getCount(), nowTempDir);
                     nowTempDir.addDir(loopDir);
-                    nowTempDir.setLastTime(count);
+                    nowTempDir.setLastTime(manager.getCount());
                 }
             }
             nowTempDir = loopDir;
@@ -151,7 +156,7 @@ public class MyFileSystem implements FileSystem {
 
     public void rootChange(String path) throws FileSystemException{
         if (path.equals("/")) {
-            throw new PathException(path);
+            throw new PathInvalidException(path);
         }
     }
 
@@ -164,16 +169,16 @@ public class MyFileSystem implements FileSystem {
         Dir loopDir = nowDir;
         while (!loopDir.getName().equals("/")) {
             if (loopDir == targetDir) {
-                throw new PathException(path);
+                throw new PathInvalidException(path);
             }
             loopDir = loopDir.getFather();
         }
         if (targetDir.getName().equals("/")) {
-            throw new PathException(path);
+            throw new PathInvalidException(path);
         } //if targetDir is root ,exception
         targetDir.delete();
         targetDir.getFather().getSubDir().remove(targetDir.getName());
-        targetDir.getFather().setLastTime(count);
+        targetDir.getFather().setLastTime(manager.getCount());
         return targetDir.getPath();
     }
 
@@ -189,7 +194,7 @@ public class MyFileSystem implements FileSystem {
             if (!dirs[i].equals("")) {
                 nowTempDir = temproot.getDir(dirs[i]);
                 if (nowTempDir == null) {
-                    throw new PathException(path);
+                    throw new PathInvalidException(path);
                 }
                 temproot = nowTempDir;
             }
@@ -203,12 +208,37 @@ public class MyFileSystem implements FileSystem {
         if (targetDir == null) {
             File targetFile = findFile(path.charAt(0) == '/' ? root : nowDir, path);// better ?
             if (targetFile == null) {
-                throw new PathException(path);
+                throw new PathInvalidException(path);
             }
             return targetFile.info();
         }
 
         return targetDir.info();
+    }
+
+    @Override
+    public String linkSoft(String s, String s1) throws FileSystemException {
+        return null;
+    }
+
+    @Override
+    public String readLink(String s) throws FileSystemException {
+        return null;
+    }
+
+    @Override
+    public String linkHard(String s, String s1) throws FileSystemException {
+        return null;
+    }
+
+    @Override
+    public void move(String s, String s1) throws FileSystemException {
+
+    }
+
+    @Override
+    public void copy(String s, String s1) throws FileSystemException {
+
     }
 
 
@@ -224,7 +254,7 @@ public class MyFileSystem implements FileSystem {
             if (!dirs[i].equals("")) {
                 nowTempDir = root.getDir(dirs[i]);
                 if (nowTempDir == null) {
-                    throw new PathException(path);
+                    throw new PathInvalidException(path);
                 }
                 root = nowTempDir;
             }
@@ -239,7 +269,7 @@ public class MyFileSystem implements FileSystem {
         pathLenInvalid(path);
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
-            throw new PathException(path);
+            throw new PathInvalidException(path);
         }
         return file.cat();
     }
@@ -250,11 +280,11 @@ public class MyFileSystem implements FileSystem {
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
 
         if (file == null) {
-            throw new PathException(path);
+            throw new PathInvalidException(path);
         } else {
             Dir father = file.getFather();
             father.getSubFile().remove(file.getName());
-            father.setLastTime(count);
+            father.setLastTime(manager.getCount());
             return file.getPath();
         }
     }
@@ -265,10 +295,10 @@ public class MyFileSystem implements FileSystem {
         File file = findFile(path.charAt(0) == '/' ? root : nowDir, path);
         if (file == null) {
             file = createFile(path);
-            file.write(content, count);
-            file.getFather().setLastTime(count);
+            file.write(content, manager.getCount());
+            file.getFather().setLastTime(manager.getCount());
         } else {
-            file.write(content, count);
+            file.write(content, manager.getCount());
         }
     }
 
@@ -277,11 +307,11 @@ public class MyFileSystem implements FileSystem {
         if (file == null) {
             file = createFile(path);
             fileWrite(path, content);
-            file.getFather().setLastTime(count);
+            file.getFather().setLastTime(manager.getCount());
         } else {
             update();
             pathLenInvalid(path);
-            file.append(content, count);
+            file.append(content, manager.getCount());
         }
     }
 
@@ -303,7 +333,7 @@ public class MyFileSystem implements FileSystem {
             if (!dirs[i].equals("")) {
                 nowTempDir = tempRoot.getDir(dirs[i]);
                 if (nowTempDir == null) {
-                    throw new PathException(path);
+                    throw new PathInvalidException(path);
                 }
                 tempRoot = nowTempDir;
             }
@@ -312,13 +342,14 @@ public class MyFileSystem implements FileSystem {
         result = nowTempDir.getFile(dirs[len - 1]);
         if (result == null) {
             if (nowTempDir.getSubDir().containsKey(dirs[len - 1]) || !nameIsValid(dirs[len - 1])) {
-                throw new PathException(path);
+                throw new PathInvalidException(path);
             }
-            result = new File(dirs[len - 1], (nowTempDir.getPath() + "/" + dirs[len - 1]).replaceAll("/+", "/"), count, nowTempDir);
+            result = new File(dirs[len - 1], (nowTempDir.getPath() + "/" + dirs[len - 1])
+                    .replaceAll("/+", "/"), manager.getCount(), nowTempDir);
             nowTempDir.addFile(result);
-            nowTempDir.setLastTime(count);
+            nowTempDir.setLastTime(manager.getCount());
         }
-        result.setLastTime(count);
+        result.setLastTime(manager.getCount());
         return result;
     }
 }
