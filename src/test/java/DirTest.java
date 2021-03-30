@@ -11,8 +11,8 @@ public class DirTest {
     private Dir root = new Dir("root","/root",0,null);
     private Dir test = new Dir("test","/root/test",0,root);
     private Dir test2 = new Dir("test2","/root/test2",0,root);
-    private File testFile = new File("testFile","/root/testFile",0,root);
-    private File testFile2 = new File("testFile2","/root/testFile2",0,root);
+    private File testFile = new File("testFile","/root/testFile",0,root, "sb");
+    private File testFile2 = new File("testFile2","/root/testFile2",0,root, "snb");
     private HashMap<String,Dir> testMap =new HashMap<>();
     private HashMap<String,File> testFileMAp = new HashMap<>();
 
@@ -154,7 +154,7 @@ public class DirTest {
 
     @Test
     public void addFile() {
-        File testFile3 = new File("testFile3","/root/testFile3",0,root);
+        File testFile3 = new File("testFile3","/root/testFile3",0,root, "sb");
         root.addFile(testFile3);
         testFileMAp.put("testFile3",testFile3);
         HashMap<String,File> fileMap = root.getSubFile();

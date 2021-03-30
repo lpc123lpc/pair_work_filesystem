@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 public class FileTest {
 
     private Dir root = new Dir("root","/root",0,null);
-    private File file = new File("file","/root/file",1,root);
+    private File file = new File("file","/root/file",1,root, "shshhs");
 
     @Before
     public void setUp() throws Exception {

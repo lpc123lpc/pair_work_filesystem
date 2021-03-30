@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class Dir {
+public class Dir implements Entry{
     private String name;
     private String path;
     private int createTime;
@@ -33,6 +33,18 @@ public class Dir {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void setPath(String path) {
+        this.path = path;
+        for (Dir temp : subDir.values()) {
+            temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
+        }
+        for (File temp : subFile.values()) {
+            temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
+        }
+
     }
 
     public int getLastTime() {
@@ -109,6 +121,15 @@ public class Dir {
         }
         return size;
     }
+
+    public boolean containsFile(String name){
+        return subDir.containsKey(name);
+    }
+
+    public boolean containsDir(String name){
+        return subFile.containsKey(name);
+    }
+
 
     public Dir getDir(String name) {
         return subDir.get(name);

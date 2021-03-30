@@ -18,7 +18,6 @@ public class MyUserSystem implements UserSystem {
     private Manager manager;
 
     public MyUserSystem(){
-        System.out.println("sb");
         UserGroup rootGroup = new UserGroup("root");
         rootGroup.addUser(root);
         root.setMainGroup(rootGroup);

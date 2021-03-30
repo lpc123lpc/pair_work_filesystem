@@ -1,22 +1,40 @@
-public class File {
+public class File implements Entry{
     private String name;
     private String content;
     private String path;
     private Dir father;
     private int createTime;
     private int lastTime;
+    private int fileCount = 1;
+    private String createUser;
 
-    File(String name,String path,int createTime,Dir father){
+    File(String name,String path,int createTime, Dir father, String createUser){
         this.name = name;
         this.content = "";
         this.path = path;
         this.father = father;
         this.createTime = createTime;
         this.lastTime = createTime;
+        this.createUser = createUser;
     }
+
+    File(){}
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setFather(Dir father) {
+        this.father = father;
     }
 
     public Dir getFather() {
@@ -35,14 +53,26 @@ public class File {
         return lastTime;
     }
 
+    public String getCreateUser() {
+        return createUser;
+    }
+
+    public int getFileCount() {
+        return fileCount;
+    }
+
     public void setLastTime(int lastTime) {
         this.lastTime = lastTime;
     }
+
+
 
     public void write(String content,int lastTime){
         this.lastTime = lastTime;
         this.content = content.replaceAll("@n","\n");;
     }
+
+
 
     public int getSize(){
         return this.content.length();
