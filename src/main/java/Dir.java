@@ -12,6 +12,7 @@ public class Dir implements Entry{
     private int createTime;
     private int lastTime;
     private int size = 0;
+    private int dirCount = 0;
     private Dir father;
     private HashMap<String, Dir> subDir = new HashMap<String, Dir>();
     private HashMap<String, File> subFile = new HashMap<String, File>();
@@ -34,6 +35,11 @@ public class Dir implements Entry{
     public String getName() {
         return name;
     }
+
+    public int getDirCount() {
+        return subDir.size() + subFile.size();
+    }
+
 
     @Override
     public void setPath(String path) {

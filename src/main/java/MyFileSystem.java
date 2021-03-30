@@ -381,6 +381,8 @@ public class MyFileSystem implements FileSystem {
 
     @Override
     public void move(String srcPath, String desPath) throws FileSystemException {
+        // move之后父目录的修改时间是否需要进行变化
+        // 似乎每次进行move时都会删除srcEntry父目录的最后一次修改时间
         Entry srcEntry = findEntry(srcPath);
         if (srcEntry == null) {
             throw new PathInvalidException(srcPath);
@@ -389,60 +391,60 @@ public class MyFileSystem implements FileSystem {
         if (desEntry == null) {
             String name = getName(desPath);
             Dir desFather = findDir(desPath.charAt(0) == '/' ? root : nowDir, desPath.substring(0, desPath.lastIndexOf("/")));
+            // 更改srcEntry name
+            // 更改 srcEntry 的 path
+            // 添加到desFather的子目录中
+            // 从srcEntry的Father的子目录中删除，
+            srcEntry.setName(name);
+            srcEntry.setPath((desFather.getPath() + "/" + name).replaceAll("/+", "/"));
             if (srcEntry instanceof Dir) {
-                // 更改srcEntry name
-                // 更改 srcEntry 的 path
-                // 添加到desFather的子目录中
-                // 从srcEntry的Father的子目录中删除，
                 srcEntry.getFather().getSubDir().remove(srcEntry.getName());
-                srcEntry.setName(name);
-                srcEntry.setPath((desFather.getPath() + "/" + name).replaceAll("/+", "/"));
-                srcEntry.setFather(desFather);
                 desFather.addDir((Dir)srcEntry);
-
             } else if (srcEntry instanceof File) {
-                // 更改 srcEntry的name
-                // 更改 srcEntry的path
-                //
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
-                srcEntry.setName(name);
-                srcEntry.setFather(desFather);
-                srcEntry.setPath((desFather.getPath() + "/" + name).replaceAll("/+", "/"));
                 desFather.addFile((File)srcEntry);
-
             }
+            // 更新srcEntry oldFather 最后一次修改时间
+            srcEntry.getFather().setLastTime(manager.getCount());
+            srcEntry.setFather(desFather);
+            // 更新srcEntry newFather 最后一次修改时间
+            desFather.setLastTime(manager.getCount());
         } else if (desEntry.getPath().equals(srcEntry.getPath())) {
             throw new PathInvalidException(desPath);
         }  else if (isFather(srcEntry.getPath(), desEntry.getPath())) {
             throw new PathInvalidException(desPath);
-        } else if (desEntry instanceof Dir) {
+        } else if (desEntry instanceof Dir && srcEntry instanceof File) {
             if (((Dir) desEntry).containsDir(srcEntry.getName())) {
                 throw new PathExistException(desPath + "/" + srcPath);
             } else if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                 ((Dir) desEntry).addFile((File) srcEntry);
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
+                // oldFather modifyTime
+                srcEntry.getFather().setLastTime(manager.getCount());
                 srcEntry.setFather((Dir)desEntry);
                 srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).replaceAll("/+", "/"));
                 ((File) srcEntry).setLastTime(manager.getCount());
             } else if (!((Dir) desEntry).containsDir(srcEntry.getName()) &&
                     !((Dir) desEntry).containsFile(srcEntry.getName())){
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
+                // oldFather modifyTime
+                srcEntry.getFather().setLastTime(manager.getCount());
                 srcEntry.setFather((Dir)desEntry);
                 srcEntry.setPath((desEntry.getPath() + "/" + name).replaceAll("/+", "/"));
                 ((Dir)desEntry).addFile((File) srcEntry);
-                ((Dir) desEntry).setLastTime(manager.getCount());
+                ((Dir)desEntry).setLastTime(manager.getCount());
             }
         } else if (desEntry instanceof File) {
             if (srcEntry instanceof File) {
                 // 此状况下 为 将srcEntry进行重命名为desEntry的name，然后移动到其父亲下。
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
+                // oldFather modifyTime
+                srcEntry.getFather().setLastTime(manager.getCount());
                 srcEntry.setName(desEntry.getName());
                 desEntry.getFather().addFile((File)srcEntry);
                 srcEntry.setFather(desEntry.getFather());
                 srcEntry.setPath((srcEntry.getFather().getPath() + "/" + srcEntry.getName()));
                 ((File) srcEntry).setLastTime(manager.getCount());
-            } else if (srcEntry instanceof Dir) {
-                throw new PathExistException(desPath);
             }
         }
         if (srcEntry instanceof Dir) {
@@ -450,9 +452,31 @@ public class MyFileSystem implements FileSystem {
                 throw new PathInvalidException(srcPath);
             }
             if (desEntry instanceof Dir) {
+                if (((Dir) desEntry).containsFile(srcEntry.getName())) {
+                    throw new PathExistException(desPath + "/" + srcEntry.getName());
+                }
+                Dir tempDir = ((Dir) desEntry).getSubDir().get(srcEntry.getName());
+                if (tempDir == null || tempDir.getDirCount() == 0) {
+                    // 两种情况的区别为：二者是否需要进行更新父目录（desEntry）修改次数
+                    srcEntry.getFather().getSubFile().remove(srcEntry.getName());
+                    // oldFather modifyTime
+                    srcEntry.getFather().setLastTime(manager.getCount());
+                    srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).
+                            replaceAll("/+", "/"));
+                    ((Dir) desEntry).addDir((Dir)srcEntry);
+                    srcEntry.setFather((Dir) desEntry);
 
+                    ((Dir) srcEntry).setLastTime(manager.getCount());
+                    // 考虑到父目录desEntry下子目录数量发生变化，需要更新其最后一次修改时间
+                    if (tempDir == null) {
+                        ((Dir) desEntry).setLastTime(manager.getCount());
+                    }
+                } else if (tempDir.getDirCount() != 0) {
+                    throw new PathExistException(desPath + "/" + srcEntry.getName());
+                }
+            } else if (desEntry instanceof File) {
+                throw new PathExistException(desPath + "/" + srcEntry.getName());
             }
-
         }
 
     }
