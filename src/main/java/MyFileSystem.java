@@ -459,7 +459,7 @@ public class MyFileSystem implements FileSystem {
                 }
                 Dir tempDir = ((Dir) desEntry).getSubDir().get(srcEntry.getName());
                 if (tempDir == null) {
-                    srcEntry.getFather().getSubFile().remove(srcEntry.getName());
+                    srcEntry.getFather().getSubDir().remove(srcEntry.getName());
                     // oldFather modifyTime
                     srcEntry.getFather().setLastTime(manager.getCount());
                     srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).replaceAll("/+", "/"));
