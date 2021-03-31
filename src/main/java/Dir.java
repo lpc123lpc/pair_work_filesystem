@@ -47,7 +47,9 @@ public class Dir implements Entry{
     public void setPath(String path) {
         this.path = path;
         for (Dir temp : subDir.values()) {
-            temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
+            if (!temp.getName().equals(this.name) && !temp.getName().equals(this.father.getName())){
+                temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
+            }
         }
         for (File temp : subFile.values()) {
             temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
@@ -157,10 +159,13 @@ public class Dir implements Entry{
 
     public void copy(Dir dir,int createTime,String createUser) {
         for (Dir subDir : dir.getSubDir().values()) {
-            Dir tempDir = new Dir(subDir.getName(),(path+"/"+subDir.getName()).
-                    replaceAll("/+","/"),createTime,this,createUser);
-            tempDir.copy(subDir,createTime,createUser);
-            this.subDir.put(subDir.getName(),tempDir);
+            if ((!subDir.getName().equals(this.name) && !subDir.getName().equals(this.father.getName()))){
+                Dir tempDir = new Dir(subDir.getName(),(path+"/"+subDir.getName()).
+                        replaceAll("/+","/"),createTime,this,createUser);
+
+                tempDir.copy(subDir,createTime,createUser);
+                this.subDir.put(subDir.getName(),tempDir);
+            }
         }
         for (File subFile : dir.getSubFile().values()) {
             if (subFile instanceof SoftLink) {

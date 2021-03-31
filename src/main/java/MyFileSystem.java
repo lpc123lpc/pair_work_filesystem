@@ -274,6 +274,7 @@ public class MyFileSystem implements FileSystem {
 
     @Override
     public String linkSoft(String srcPath, String desPath) throws FileSystemException {
+        update();
         Entry srcEntry = findEntry(srcPath);
         String result = "";
         if (srcEntry == null) {
@@ -325,7 +326,7 @@ public class MyFileSystem implements FileSystem {
         String[] srcArray = src.split("/");
 
         for (int i = 0; i < srcArray.length; i++) {
-            if (!srcArray[i].equals(desArray[i])) {
+            if (i >= desArray.length ||!srcArray[i].equals(desArray[i])) {
                 return false;
             }
         }
@@ -334,6 +335,7 @@ public class MyFileSystem implements FileSystem {
 
     @Override
     public String readLink(String desPath) throws FileSystemException {
+        update();
         File link = findFile(desPath);
         if (link instanceof SoftLink) {
             return ((SoftLink) link).getPointPath();
@@ -344,6 +346,7 @@ public class MyFileSystem implements FileSystem {
 
     @Override
     public String linkHard(String srcPath, String desPath) throws FileSystemException {
+        update();
         Entry srcEntry = findEntry(srcPath);
         String result = "";
         if (srcEntry == null || srcEntry instanceof Dir) {
@@ -382,6 +385,7 @@ public class MyFileSystem implements FileSystem {
 
     @Override
     public void move(String srcPath, String desPath) throws FileSystemException {
+        update();
         // move之后父目录的修改时间是否需要进行变化
         // 似乎每次进行move时都会删除srcEntry父目录的最后一次修改时间
         Entry srcEntry = findEntry(srcPath);
@@ -396,14 +400,15 @@ public class MyFileSystem implements FileSystem {
             // 更改srcEntry name
             // 更改 srcEntry 的 path
             // 添加到desFather的子目录中
-            // 从srcEntry的Father的子目录中删除，
-            srcEntry.setName(name);
+            // 从srcEntry的Father的子目录中删除
             srcEntry.setPath((desFather.getPath() + "/" + name).replaceAll("/+", "/"));
             if (srcEntry instanceof Dir) {
                 srcEntry.getFather().getSubDir().remove(srcEntry.getName());
+                srcEntry.setName(name);
                 desFather.addDir((Dir)srcEntry);
             } else if (srcEntry instanceof File) {
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
+                srcEntry.setName(name);
                 desFather.addFile((File)srcEntry);
             }
             // 更新srcEntry oldFather 最后一次修改时间
@@ -457,8 +462,7 @@ public class MyFileSystem implements FileSystem {
                     srcEntry.getFather().getSubFile().remove(srcEntry.getName());
                     // oldFather modifyTime
                     srcEntry.getFather().setLastTime(manager.getCount());
-                    srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).
-                            replaceAll("/+", "/"));
+                    srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).replaceAll("/+", "/"));
                     ((Dir) desEntry).addDir((Dir)srcEntry);
                     srcEntry.setFather((Dir) desEntry);
                     ((Dir) srcEntry).setLastTime(manager.getCount());
@@ -495,6 +499,7 @@ public class MyFileSystem implements FileSystem {
 
     @Override
     public void copy(String srcPath, String desPath) throws FileSystemException {
+        update();
         Entry srcEntry = findEntry(srcPath);//
         if (srcEntry == null) {
             throw new PathInvalidException(srcPath);
