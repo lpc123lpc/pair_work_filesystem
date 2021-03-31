@@ -46,21 +46,18 @@ public class MyFileSystem implements FileSystem {
         if (path.split("/+").length == 0) {
             nowDir = root;
         } else {
-            if (path.charAt(0) == '/') {
-                nowDir = findDir(path);
-            } else {
-                nowDir = findDir(path);
-            }
+            nowDir = findDir(path);
         }
         manager.setNowDir(nowDir);
         return nowDir.getPath();
     }
 
-    // TODO
     public Dir findDir(String path) throws FileSystemException {
         Entry tempEntry = findEntry(path);
         if (tempEntry instanceof Dir) {
             return (Dir) tempEntry;
+        } else if (tempEntry instanceof SoftLink) {
+            return findDir(((SoftLink) tempEntry).getPointPath());
         }
         return null;
     }
@@ -239,7 +236,10 @@ public class MyFileSystem implements FileSystem {
         pathLenInvalid(path);
         String rightPath = path.replaceAll("/+", "/");
         rootChange(rightPath);
-        Dir targetDir = findDir(path);
+        Entry targetDir = findEntry(path);
+        if (!(targetDir instanceof Dir)) {
+            throw new PathInvalidException(path);
+        }
         Dir loopDir = nowDir;
         while (!loopDir.getName().equals("/")) {
             if (loopDir == targetDir) {
@@ -250,7 +250,7 @@ public class MyFileSystem implements FileSystem {
         if (targetDir.getName().equals("/")) {
             throw new PathInvalidException(path);
         } //if targetDir is root ,exception
-        targetDir.delete();
+        ((Dir) targetDir).delete();
         targetDir.getFather().getSubDir().remove(targetDir.getName());
         targetDir.getFather().setLastTime(manager.getCount());
         return targetDir.getPath();
@@ -678,13 +678,16 @@ public class MyFileSystem implements FileSystem {
 
 
     // fuck file
-    // TODO
     public File findFile(String path) throws FileSystemException {
         if (path.endsWith("/")) {
             throw new PathInvalidException(path);
         }
         Entry tempEntry = findEntry(path);
-        if (tempEntry instanceof File) {
+        if (tempEntry instanceof SoftLink) {
+            return findFile(((SoftLink) tempEntry).getPointPath());
+        } else if (tempEntry instanceof HardLink) {
+            return ((HardLink) tempEntry).getFile();
+        } else if (tempEntry instanceof File){
             return (File) tempEntry;
         }
         return null;
@@ -703,8 +706,8 @@ public class MyFileSystem implements FileSystem {
     public String removeFile(String path) throws FileSystemException {
         update();
         pathLenInvalid(path);
-        File file = findFile(path);
-        if (file == null) {
+        Entry file = findEntry(path);
+        if (file == null || file instanceof Dir) {
             throw new PathInvalidException(path);
         } else {
             Dir father = file.getFather();

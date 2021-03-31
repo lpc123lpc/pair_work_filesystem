@@ -17,4 +17,10 @@ public class HardLink extends File {
     public int getSize() {
         return file.getSize();
     }
+
+    @Override
+    public String info() {
+        return file.getCreateUser() + " " + file.getCreateUser() + " " + file.getCreateTime() + " " +
+                file.getLastTime() + " " + file.getSize() + " " +  file.getFileCount()+ " " + getPath();
+    }
 }
