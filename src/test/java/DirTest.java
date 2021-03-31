@@ -8,9 +8,9 @@ import static org.junit.Assert.*;
 
 public class DirTest {
 
-    private Dir root = new Dir("root","/root",0,null);
-    private Dir test = new Dir("test","/root/test",0,root);
-    private Dir test2 = new Dir("test2","/root/test2",0,root);
+    private Dir root = new Dir("root","/root",0,null, "root");
+    private Dir test = new Dir("test","/root/test",0,root,"root");
+    private Dir test2 = new Dir("test2","/root/test2",0,root,"root");
     private File testFile = new File("testFile","/root/testFile",0,root, "sb");
     private File testFile2 = new File("testFile2","/root/testFile2",0,root, "snb");
     private HashMap<String,Dir> testMap =new HashMap<>();
@@ -139,7 +139,7 @@ public class DirTest {
 
     @Test
     public void addDir() {
-        Dir dir = new Dir("dir","/root/dir",0,root);
+        Dir dir = new Dir("dir","/root/dir",0,root,"root");
         root.addDir(dir);
         testMap.put("dir",dir);
         HashMap<String,Dir> DirMap = root.getSubDir();

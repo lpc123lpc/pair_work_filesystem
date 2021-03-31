@@ -6,7 +6,7 @@ import static org.junit.Assert.*;
 
 public class FileTest {
 
-    private Dir root = new Dir("root","/root",0,null);
+    private Dir root = new Dir("root","/root",0,null,"root");
     private File file = new File("file","/root/file",1,root, "shshhs");
 
     @Before

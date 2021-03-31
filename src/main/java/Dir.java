@@ -14,15 +14,17 @@ public class Dir implements Entry{
     private int size = 0;
     private int dirCount = 0;
     private Dir father;
+    private String createUser;
     private HashMap<String, Dir> subDir = new HashMap<String, Dir>();
     private HashMap<String, File> subFile = new HashMap<String, File>();
 
-    Dir(String name, String path, int createTime, Dir father) {
+    Dir(String name, String path, int createTime, Dir father,String createUser) {
         this.name = name;
         this.path = path;
         this.createTime = createTime;
         this.lastTime = createTime;
         this.father = father;
+        this.createUser = createUser;
         size = 0;
         subDir.put(".", this);
         subDir.put("..", father);
@@ -151,6 +153,35 @@ public class Dir implements Entry{
 
     public void addFile(File file) {
         subFile.put(file.getName(), file);
+    }
+
+    public void copy(Dir dir,int createTime,String createUser) {
+        for (Dir subDir : dir.getSubDir().values()) {
+            Dir tempDir = new Dir(subDir.getName(),(path+"/"+subDir.getName()).
+                    replaceAll("/+","/"),createTime,this,createUser);
+            tempDir.copy(subDir,createTime,createUser);
+            this.subDir.put(subDir.getName(),tempDir);
+        }
+        for (File subFile : dir.getSubFile().values()) {
+            if (subFile instanceof SoftLink) {
+                SoftLink tempSoftLink = new SoftLink(subFile.getName(), (path + "/" + subFile.getName()).
+                        replaceAll("/+", "/"), createTime, this, createUser);
+                tempSoftLink.setPointPath(((SoftLink) subFile).getPointPath());
+                this.subFile.put(tempSoftLink.getName(),tempSoftLink);
+            }
+            else if (subFile instanceof HardLink) {
+                HardLink tempHardLink = new HardLink(subFile.getName(), (path + "/" + subFile.getName()).
+                        replaceAll("/+", "/"), createTime, this, createUser);
+                tempHardLink.setFile(((HardLink) subFile).getFile());
+                this.subFile.put(tempHardLink.getName(),tempHardLink);
+            }
+            else {
+                File tempFile = new File(subFile.getName(), (path + "/" + subFile.getName()).
+                        replaceAll("/+", "/"), createTime, this, createUser);
+                tempFile.write(subFile.cat(), createTime);
+                this.subFile.put(subFile.getName(), tempFile);
+            }
+        }
     }
 
     @Override
