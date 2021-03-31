@@ -89,6 +89,7 @@ public class MyFileSystem implements FileSystem {
         return result;
     }
 
+
     public String mkdir(String path, Dir root) throws FileSystemException {
         String result = null;
         rootChange(path); /// mkdir /  path = "/" , path.split = [];
@@ -647,7 +648,6 @@ public class MyFileSystem implements FileSystem {
         update();
         pathLenInvalid(path);
         File file = findFile(path);
-
         if (file == null) {
             throw new PathInvalidException(path);
         } else {
