@@ -28,7 +28,7 @@ public class MyFileSystem implements FileSystem {
     }
 
     public void rootChange(String path) throws FileSystemException {
-        if (path.equals("/")) {
+        if (path.replaceAll("/+", "/").equals("/")) {
             throw new PathInvalidException(path);
         }
     }
@@ -95,26 +95,62 @@ public class MyFileSystem implements FileSystem {
         rootChange(path); /// mkdir /  path = "/" , path.split = [];
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
-        int i = 0;
+        int i;
         for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
-                if (i == dirs.length - 1) {
-                    // mkdir /
-                    if (nowTempDir.getFile(dirs[i]) != null || !nameIsValid(dirs[i])) {
-                        throw new PathInvalidException(path);
+                File looFile = nowTempDir.getFile(dirs[i]);
+                if (looFile == null) {
+                    // 此时表明 dir[i]不是一个已经存在的目录
+                    if (i == dirs.length - 1) {
+                        // mkdir
+                        if (!nameIsValid(dirs[i])) {
+                            throw new PathInvalidException(path);
+                        } else {
+                            result = nowTempDir.getPath() + "/" + dirs[i];
+                            result = result.replaceAll("/+", "/");
+                            nowTempDir.addDir(new Dir(dirs[i], result, manager.getCount(), nowTempDir,manager.getNowUser().getName()));
+                            nowTempDir.setLastTime(manager.getCount());
+                            break;
+                        }
                     } else {
-                        result = nowTempDir.getPath() + "/" + dirs[i];
-                        result = result.replaceAll("/+", "/");
-                        nowTempDir.addDir(new Dir(dirs[i], result, manager.getCount(), nowTempDir,manager.getNowUser().getName()));
-                        nowTempDir.setLastTime(manager.getCount());
-                        break;
+                        throw new PathInvalidException(path);
+                    }
+                } else if (looFile instanceof SoftLink) {
+                    Entry loopEntry = findEntry(((SoftLink) looFile).getPointPath());
+                    if (loopEntry == null) {
+                        // 如果软连接对应的目录没有找到，一种情况时当前已经查询到路径最后一个，需要进行创建
+                        // 一种情况时当前不在路径最后一个，此时软连接对应一个不存在目录，则需要进行抛出异常]
+                        if (i == dirs.length - 1) {
+                            // mkdir /
+                            // 此时创建时，需要知道loopEntry的Father,以及需要被创建的name
+                            // 由于 pointPath为一个绝对路径，可以直接使用创建链接时使用的方法
+                            String name = getName(((SoftLink) looFile).getPointPath());
+                            nowTempDir = findDir(((SoftLink) looFile).getPointPath().substring(0,
+                                    ((SoftLink) looFile).getPointPath().lastIndexOf("/")));
+                            if (nowTempDir.containsFile(name) || !nameIsValid(name)) {
+                                throw new PathInvalidException(path);
+                            } else {
+                                result = nowTempDir.getPath() + "/" + name;
+                                result = result.replaceAll("/+", "/");
+                                nowTempDir.addDir(new Dir(name, result, manager.getCount(), nowTempDir,manager.getNowUser().getName()));
+                                nowTempDir.setLastTime(manager.getCount());
+                                break;
+                            }
+                        } else {
+                            throw new PathInvalidException(path);
+                        }
+                    } else if (loopEntry instanceof Dir) {
+                        nowTempDir = (Dir) loopEntry;
+                    } else {
+                        throw new PathInvalidException(path);
                     }
                 } else {
                     throw new PathInvalidException(path);
                 }
+            } else {
+                nowTempDir = loopDir;
             }
-            nowTempDir = loopDir;
         }
         if (i == dirs.length) {
             throw new PathInvalidException(path);
@@ -144,24 +180,55 @@ public class MyFileSystem implements FileSystem {
     }
 
     public String mkdirP(String path, Dir root) throws FileSystemException {
-        String result = null;
+        String result;
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
-        int i = 0;
+        int i;
         for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
-                if (nowTempDir.getFile(dirs[i]) != null || !nameIsValid(dirs[i])) {
-                    throw new PathInvalidException(path);
+                File loopFile = nowTempDir.getFile(dirs[i]);
+                if (loopFile == null) {
+                    // 此时找不到需要进行创建，也就是dirs[i]不是一个已经存在
+                    // 目录和已经存在的文件，需要进行创建目录
+                    if (!nameIsValid(dirs[i])) {
+                        throw new PathInvalidException(path);
+                    } else {
+                        result = nowTempDir.getPath() + "/" + dirs[i];
+                        result = result.replaceAll("/+", "/");
+                        loopDir = new Dir(dirs[i], result, manager.getCount(), nowTempDir,manager.getNowUser().getName());
+                        nowTempDir.addDir(loopDir);
+                        nowTempDir.setLastTime(manager.getCount());
+                        // update nowTempDir
+                        nowTempDir = loopDir;
+                    }
+                } else if (loopFile instanceof SoftLink) {
+                    Entry loopEntry = findEntry(((SoftLink) loopFile).getPointPath());
+                    if (loopEntry == null) {
+                        // 找不到目标目录，需要进行创建
+                        // 创建时，需要找到被创建目录的father和name
+                        String name = getName(((SoftLink) loopFile).getPointPath());
+                        nowTempDir = findDir(((SoftLink) loopFile).getPointPath()
+                                .substring(0, ((SoftLink) loopFile).getPointPath().lastIndexOf("/")));
+                        result = nowTempDir.getPath() + "/" + name;
+                        result = result.replaceAll("/+", "/");
+                        loopDir = new Dir(name, result, manager.getCount(), nowTempDir,manager.getNowUser().getName());
+                        nowTempDir.addDir(loopDir);
+                        nowTempDir.setLastTime(manager.getCount());
+                        // update nowTempDir
+                        nowTempDir = loopDir;
+                    } else if (loopEntry instanceof Dir) {
+                        // 目标路径存在，更新nowTempDir
+                        nowTempDir = (Dir)loopEntry;
+                    } else {
+                        throw new PathInvalidException(path);
+                    }
                 } else {
-                    result = nowTempDir.getPath() + "/" + dirs[i];
-                    result = result.replaceAll("/+", "/");
-                    loopDir = new Dir(dirs[i], result, manager.getCount(), nowTempDir,manager.getNowUser().getName());
-                    nowTempDir.addDir(loopDir);
-                    nowTempDir.setLastTime(manager.getCount());
+                    throw new PathInvalidException(path);
                 }
+            } else {
+                nowTempDir = loopDir;
             }
-            nowTempDir = loopDir;
         }
         return nowTempDir.getPath();
     }
@@ -171,7 +238,7 @@ public class MyFileSystem implements FileSystem {
         update();
         pathLenInvalid(path);
         String rightPath = path.replaceAll("/+", "/");
-        rootChange(path);
+        rootChange(rightPath);
         Dir targetDir = findDir(path);
         Dir loopDir = nowDir;
         while (!loopDir.getName().equals("/")) {
@@ -183,46 +250,35 @@ public class MyFileSystem implements FileSystem {
         if (targetDir.getName().equals("/")) {
             throw new PathInvalidException(path);
         } //if targetDir is root ,exception
-        // TODO
         targetDir.delete();
         targetDir.getFather().getSubDir().remove(targetDir.getName());
         targetDir.getFather().setLastTime(manager.getCount());
         return targetDir.getPath();
     }
 
-    // TODO
+    /**
+     * @return String
+     * 首先得到path对应的Entry，若不存在此Entry则显然抛出异常
+     * 若Entry存在，对Entry类型进行讨论
+     * 若Entry为SoftLink则不进行重定向，直接输出此SoftLink的information
+     * 若Entry为HardLink则进行重定向，输出的为此HardLink指向的文件的information
+     * 若Entry为普通Dir或File，则直接调用Info即可
+     */
+
     public String information(String path) throws FileSystemException {
         update();
         pathLenInvalid(path);
         Dir targetDir = null;
-        Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
-        Dir temproot = nowTempDir;
-        String[] dirs = path.split("/+");
-        int len = dirs.length;
-        for (int i = 0; i < len - 1; ++i) {
-            if (!dirs[i].equals("")) {
-                nowTempDir = temproot.getDir(dirs[i]);
-                if (nowTempDir == null) {
-                    throw new PathInvalidException(path);
-                }
-                temproot = nowTempDir;
-            }
+        Entry tempEntry = findEntry(path);
+        String result = "";
+        if (tempEntry == null) {
+            throw new PathInvalidException(path);
+        } else if (tempEntry instanceof HardLink) {
+            result = ((HardLink) tempEntry).getFile().info();
+        } else {
+            result = tempEntry.info();
         }
-        // root file    info /   special just
-        if (path.split("/+").length == 0) {
-            return root.info();
-        }
-        targetDir = nowTempDir.getDir(dirs[len - 1]);
-
-        if (targetDir == null) {
-            File targetFile = findFile(path);// better ?
-            if (targetFile == null) {
-                throw new PathInvalidException(path);
-            }
-            return targetFile.info();
-        }
-
-        return targetDir.info();
+        return result;
     }
 
     public Entry findEntry(String path) throws FileSystemException {
@@ -255,7 +311,7 @@ public class MyFileSystem implements FileSystem {
         }
 
         // root file    info /   special just
-        if (path.equals("/")) {
+        if (path.replaceAll("/+", "/").equals("/")) {
             return root;
         }
         Dir targetDir = nowTempDir.getDir(dirs[len - 1]);

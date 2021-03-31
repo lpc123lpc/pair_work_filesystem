@@ -46,15 +46,14 @@ public class Dir implements Entry{
     @Override
     public void setPath(String path) {
         this.path = path;
-        for (Dir temp : subDir.values()) {
-            if (!temp.getName().equals(this.name) && !temp.getName().equals(this.father.getName())){
-                temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
+        for (Map.Entry<String, Dir> temp : subDir.entrySet()) {
+            if (!temp.getKey().equals(".") && !temp.getKey().equals("..")) {
+                temp.getValue().setPath((path + "/" + temp.getValue().getName()).replaceAll("/+", "/"));
             }
         }
         for (File temp : subFile.values()) {
             temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
         }
-
     }
 
     public int getLastTime() {
@@ -102,7 +101,8 @@ public class Dir implements Entry{
     }
 
     public String info() {
-        return path + ": " + createTime + " " + lastTime + " " + getSize();
+        return createUser + " " + createUser + " " + createTime + " " +
+                lastTime + " " + getSize() + " " + dirCount + " " + path;
     }
 
     public String ls() {

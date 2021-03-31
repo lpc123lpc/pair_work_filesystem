@@ -89,7 +89,8 @@ public class File implements Entry{
     }
 
     public String info(){
-        return path+": "+createTime+" "+lastTime+" "+content.length();
+        return createUser + " " + createUser + " " + createTime + " " +
+                lastTime + " " + getSize() + " " + fileCount + " " + path;
     }
 
 

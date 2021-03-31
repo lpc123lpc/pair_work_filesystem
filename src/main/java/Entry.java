@@ -4,5 +4,6 @@ public interface Entry {
     void setPath(String path);
     void setFather(Dir father);
     Dir getFather();
+    String info();
     void setName(String name);
 }
