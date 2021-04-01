@@ -140,6 +140,7 @@ public class MyUserSystem implements UserSystem {
             throw new UserInvalidException(username);
         } else {
             manager.setNowUser(users.get(username));
+            manager.setRootPath(manager.getNowDir().getPath());
         }
         return manager.getNowUser().getName();
     }
@@ -151,7 +152,7 @@ public class MyUserSystem implements UserSystem {
             throw new PermittionException();
         }
         manager.setNowUser(root);
-        manager.setNowDir(manager.getRootPath());
+        manager.setFileSysFlag(1);
         return "exit";
     }
 

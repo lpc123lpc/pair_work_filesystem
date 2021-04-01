@@ -1,6 +1,11 @@
+<<<<<<< Updated upstream
 import com.fileutils.specs2.models.UserSystem;
 import com.fileutils.specs2.models.UserSystemException;
 import exceptions.PermittionException;
+=======
+import com.fileutils.specs2.models.FileSystemException;
+import com.fileutils.specs2.models.UserSystemException;
+>>>>>>> Stashed changes
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,12 +33,16 @@ public class MyUserSystemTest {
 
     @Test
     public void addUser() {
+<<<<<<< Updated upstream
         try{
             manager.setNowUser(common);
             userSystem.addUser("test");
         }catch (UserSystemException e){
             assertTrue(e instanceof PermittionException);
         }
+=======
+
+>>>>>>> Stashed changes
     }
 
     @Test

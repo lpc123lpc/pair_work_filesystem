@@ -1,8 +1,9 @@
 public class Manager {
     private int count;
     private User nowUser;
-    private Dir rootPath; // absolute path
+    private String rootPath; // absolute path
     private Dir nowDir; //
+    private int fileSysFlag = 0;
     private static Manager instance = new Manager();
 
     private Manager(){}
@@ -17,7 +18,7 @@ public class Manager {
     // rm /home/target/..
 
 
-    public void setRootPath(Dir rootPath) {
+    public void setRootPath(String rootPath) {
         this.rootPath = rootPath;
     }
 
@@ -29,6 +30,14 @@ public class Manager {
         this.nowUser = nowUser;
     }
 
+    public void setFileSysFlag(int fileSysFlag) {
+        this.fileSysFlag = fileSysFlag;
+    }
+
+    public int getFileSysFlag() {
+        return fileSysFlag;
+    }
+
     public int getCount() {
         return count;
     }
@@ -37,7 +46,7 @@ public class Manager {
         return nowDir;
     }
 
-    public Dir getRootPath() {
+    public String getRootPath() {
         return rootPath;
     }
 

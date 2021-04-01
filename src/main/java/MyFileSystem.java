@@ -20,12 +20,21 @@ public class MyFileSystem implements FileSystem {
         manager = Manager.getInstance();
         manager.setCount(0);
         manager.setNowDir(root);
-        manager.setRootPath(root);
+        manager.setRootPath("/root");
     }
 
     private void update() throws FileSystemException {
         manager.update();
-        //
+        if (manager.getFileSysFlag() == 1) {
+            Dir tempEntry = findDir(manager.getRootPath());
+            if (tempEntry == null) {
+                nowDir = root;
+            } else {
+                nowDir = tempEntry;
+            }
+            manager.setNowDir(nowDir);
+            manager.setFileSysFlag(0);
+        }
     }
 
     public void rootChange(String path) throws FileSystemException {
@@ -151,7 +160,7 @@ public class MyFileSystem implements FileSystem {
             }
         }
         if (i == dirs.length) {
-            throw new PathInvalidException(path);
+            throw new PathExistException(path);
         }
         return result;
     }
@@ -500,7 +509,7 @@ public class MyFileSystem implements FileSystem {
                 // TODO
                 throw new PathInvalidException(desPath);
             }
-            srcEntry.setPath(newDesEntryPath,manager.getCount());
+            srcEntry.setPath(newDesEntryPath, manager.getCount());
             if (srcEntry instanceof Dir) {
                 srcEntry.getFather().getSubDir().remove(srcEntry.getName());
                 srcEntry.setName(name);
@@ -556,7 +565,7 @@ public class MyFileSystem implements FileSystem {
                     throw new PathExistException((desPath + "/" + srcEntry.getName()));
                 }
                 Dir tempDir = ((Dir) desEntry).getDir(srcEntry.getName());
-                if (tempDir == null ) {
+                if (tempDir == null) {
                     if (!((Dir) desEntry).containsFile(srcEntry.getName())) {
                         srcEntry.getFather().getSubDir().remove(srcEntry.getName());
                         // oldFather modifyTime
@@ -566,7 +575,7 @@ public class MyFileSystem implements FileSystem {
                         srcEntry.setFather((Dir) desEntry);
                         // 考虑到父目录desEntry下子目录数量发生变化，需要更新其最后一次修改时间
                         ((Dir) desEntry).setLastTime(manager.getCount());
-                    } else if (((Dir) desEntry).containsFile(srcEntry.getName())){
+                    } else if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                         throw new PathExistException((desPath + "/" + srcEntry.getName()));
                     }
 
