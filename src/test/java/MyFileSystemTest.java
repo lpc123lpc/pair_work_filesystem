@@ -1,4 +1,5 @@
 import com.fileutils.specs2.models.FileSystemException;
+import exceptions.PathExistException;
 import exceptions.PathInvalidException;
 import org.junit.After;
 import org.junit.Before;
@@ -11,7 +12,9 @@ public class MyFileSystemTest {
 
     @Before
     public void setUp() throws Exception {
+        Manager.getInstance().setNowUser(new User("root", 1));
         myFs.makeDirectory("/home");
+        myFs.makeDirectory("/opt");
         myFs.touchFile("test1.java");
         myFs.fileWrite("test1.java", "public class Main@n{}");
     }
@@ -25,6 +28,8 @@ public class MyFileSystemTest {
     public void changeDirectory() {
         try {
             assertEquals("/home", myFs.changeDirectory("/home"));
+            assertEquals("/", myFs.changeDirectory(".."));
+            assertEquals("/", myFs.changeDirectory("///"));
             assertEquals("/home", myFs.changeDirectory("home"));
             myFs.changeDirectory("/errorPath");
         } catch (Exception e) {
@@ -44,10 +49,11 @@ public class MyFileSystemTest {
     @Test
     public void makeDirectory() {
         try {
+            assertEquals("/mkdir", myFs.makeDirectory("mkdir"));
             assertEquals("/home/work", myFs.makeDirectory("/home/work"));
             myFs.makeDirectory("/home/work"); // dir exists
         } catch (FileSystemException e) {
-            assertTrue(e instanceof PathInvalidException);
+            assertTrue(e instanceof PathExistException);
         }
         try {
             myFs.touchFile("testFile");
@@ -62,6 +68,58 @@ public class MyFileSystemTest {
             myFs.makeDirectory("/home/sb/sb/test");
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.makeDirectory("/0");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            assertEquals("/home/work",myFs.linkSoft("/home/work", "/slink"));
+            assertEquals("/home/work",myFs.removeRecursively("/home/work"));
+            myFs.changeDirectory("/");
+            assertEquals("/home/work", myFs.makeDirectory("/slink"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            assertEquals("/home/work",myFs.removeRecursively("/home/work"));
+            myFs.touchFile("/home/work");
+            myFs.changeDirectory("/");
+            assertEquals("/home/work", myFs.makeDirectory("/slink"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            assertEquals("/home/work",myFs.removeRecursively("/home/work"));
+            myFs.changeDirectory("/");
+            assertEquals("/home/work", myFs.makeDirectory("/slink"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            myFs.linkSoft("/opt", "/home/work/slink");
+            assertEquals("/home/work", myFs.makeDirectory("/slink/slink"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            assertEquals("/home/work",myFs.removeRecursively("/home/work"));
+            assertEquals("/home/work", myFs.makeDirectory("/slink/slink"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.touchFile("/opt/file");
+            myFs.makeDirectory("/opt/file");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
         }
     }
 
@@ -133,6 +191,41 @@ public class MyFileSystemTest {
     }
 
     @Test
+    public void linkSoft() {
+
+    }
+
+    @Test
+    public void linkHard() {
+
+    }
+
+    @Test
+    public void readLink() {
+
+    }
+
+    @Test
+    public void move() {
+
+    }
+
+    @Test
+    public void copy() {
+
+    }
+
+    @Test
+    public void onlyCopyFile() {
+
+    }
+
+    @Test
+    public void createAndCopyFile() {
+
+    }
+
+    @Test
     public void catFile() {
         try {
             assertEquals("public class Main\n{}", myFs.catFile("test1.java"));
@@ -192,5 +285,6 @@ public class MyFileSystemTest {
         }
 
     }
+
 
 }
