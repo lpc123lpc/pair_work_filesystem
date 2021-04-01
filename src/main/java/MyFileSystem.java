@@ -3,6 +3,7 @@ import com.fileutils.specs2.models.FileSystemException;
 import exceptions.PathExistException;
 import exceptions.PathInvalidException;
 
+import java.util.Map;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -585,9 +586,12 @@ public class MyFileSystem implements FileSystem {
                     srcEntry.getFather().setLastTime(manager.getCount());
                     srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).
                             replaceAll("/+", "/"), manager.getCount());
-                    for (Dir temp : ((Dir) srcEntry).getSubDir().values()) {
-                        tempDir.addDir(temp);
-                        temp.setFather(tempDir);
+                    // TODO
+                    for (Map.Entry<String, Dir> temp : ((Dir) srcEntry).getSubDir().entrySet()) {
+                        if (!temp.getKey().equals(".") && !temp.getKey().equals("..")) {
+                            tempDir.addDir(temp.getValue());
+                            temp.getValue().setFather(tempDir);
+                        }
                     }
                     for (File temp : ((Dir) srcEntry).getSubFile().values()) {
                         tempDir.addFile(temp);
@@ -621,10 +625,7 @@ public class MyFileSystem implements FileSystem {
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
             String newDerEntryPath = (desFather.getPath() + "/" + name).
                     replaceAll("/+", "/");
-            if (newDerEntryPath.equals(srcEntry.getPath())) {
-                throw new PathInvalidException(desPath);
-            } else if (isFather(srcEntry.getPath(), newDerEntryPath)) {
-                // TODO
+            if (isFather(srcEntry.getPath(), newDerEntryPath)) {
                 throw new PathInvalidException(desPath);
             }
             if (srcEntry instanceof File) {

@@ -39,7 +39,7 @@ public class Dir implements Entry{
     }
 
     public int getDirCount() {
-        return subDir.size() + subFile.size();
+        return subDir.size() + subFile.size() - 2;
     }
 
 
@@ -160,13 +160,12 @@ public class Dir implements Entry{
     }
 
     public void copy(Dir dir,int createTime,String createUser) {
-        for (Dir subDir : dir.getSubDir().values()) {
-            if ((!subDir.getName().equals(this.name) && !subDir.getName().equals(this.father.getName()))){
-                Dir tempDir = new Dir(subDir.getName(),(path+"/"+subDir.getName()).
+        for (Map.Entry<String, Dir> temp : subDir.entrySet()) {
+            if (!temp.getKey().equals(".") && !temp.getKey().equals("..")){
+                Dir tempDir = new Dir(temp.getValue().getName(),(path+"/"+temp.getValue().getName()).
                         replaceAll("/+","/"),createTime,this,createUser);
-
-                tempDir.copy(subDir,createTime,createUser);
-                this.subDir.put(subDir.getName(),tempDir);
+                tempDir.copy(temp.getValue(),createTime,createUser);
+                subDir.put(temp.getValue().getName(),tempDir);
             }
         }
         for (File subFile : dir.getSubFile().values()) {
