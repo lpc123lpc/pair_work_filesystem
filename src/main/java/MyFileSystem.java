@@ -3,6 +3,7 @@ import com.fileutils.specs2.models.FileSystemException;
 import exceptions.PathExistException;
 import exceptions.PathInvalidException;
 
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -176,16 +177,40 @@ public class MyFileSystem implements FileSystem {
         }
     }
 
+    public String getAbPath(String path) {
+
+        if (path.replaceAll("/+","/").equals("/")){
+            return "/";
+        }
+        else {
+            Stack<String> stack = new Stack<>();
+            for (String temp : path.split("/+")) {
+                if (temp.equals("..")&&stack.size()>0) {
+                    stack.pop();
+                }
+                else if(!temp.equals(".") && !temp.equals("..")){
+                    stack.push(temp);
+                }
+            }
+            StringBuilder temp = new StringBuilder();
+            while(stack.size() != 0) {
+                temp = temp.insert(0,stack.pop());
+            }
+            if (path.charAt(0) == '/'){
+                temp.insert(0,"/");
+            }
+            return temp.toString();
+        }
+
+    }
     public String mkdirP(String path, Dir root) throws FileSystemException {
         String result;
-        String[] dirs = path.split("/+");
+
         Dir nowTempDir = root;
         int i;
-        Entry testEntry = findEntry(path);
-        if (testEntry != null) {
-            throw new PathInvalidException(path);
-        }
-        for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
+        String realPath = getAbPath(path);
+        String[] dirs = realPath.split("/+");
+        for (i = realPath.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
                 File loopFile = nowTempDir.getFile(dirs[i]);

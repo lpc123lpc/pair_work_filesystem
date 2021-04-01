@@ -104,7 +104,7 @@ public class Dir implements Entry{
 
     public String info() {
         return createUser + " " + createUser + " " + createTime + " " +
-                lastTime + " " + getSize() + " " + dirCount + " " + path;
+                lastTime + " " + getSize() + " " + getDirCount() + " " + path;
     }
 
     public String ls() {

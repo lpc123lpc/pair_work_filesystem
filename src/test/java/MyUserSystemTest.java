@@ -1,4 +1,6 @@
-import com.fileutils.specs2.models.FileSystemException;
+import com.fileutils.specs2.models.UserSystem;
+import com.fileutils.specs2.models.UserSystemException;
+import exceptions.PermittionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +12,7 @@ public class MyUserSystemTest {
     private User root = new User("root",1);
     private User common =  new User("common",2);
     private Manager manager;
+    private MyUserSystem userSystem = new MyUserSystem();
 
     @Before
     public void setUp() throws Exception {
@@ -26,9 +29,10 @@ public class MyUserSystemTest {
     @Test
     public void addUser() {
         try{
-
-        }catch (FileSystemException e){
-            assertTrue(e instanceof );
+            manager.setNowUser(common);
+            userSystem.addUser("test");
+        }catch (UserSystemException e){
+            assertTrue(e instanceof PermittionException);
         }
     }
 
