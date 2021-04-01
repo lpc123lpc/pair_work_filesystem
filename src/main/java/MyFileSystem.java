@@ -454,11 +454,19 @@ public class MyFileSystem implements FileSystem {
             String name = getName(desPath);
             String realDesPath = desPath.charAt(0)=='/' ? desPath : nowDir.getPath() + "/" + desPath;
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
+            String newDerEntryPath = (desFather.getPath()+"/"+name).
+                    replaceAll("/+","/");
+            if (newDerEntryPath.equals(srcEntry.getPath())) {
+                throw new PathInvalidException(desPath);
+            }
+            else if (isFather(srcEntry.getPath(), newDerEntryPath)) {
+                throw new PathInvalidException(desPath);
+            }
             // 更改srcEntry name
             // 更改 srcEntry 的 path
             // 添加到desFather的子目录中
             // 从srcEntry的Father的子目录中删除
-            srcEntry.setPath((desFather.getPath() + "/" + name).replaceAll("/+", "/"));
+            srcEntry.setPath(newDerEntryPath);
             if (srcEntry instanceof Dir) {
                 srcEntry.getFather().getSubDir().remove(srcEntry.getName());
                 srcEntry.setName(name);
@@ -566,15 +574,22 @@ public class MyFileSystem implements FileSystem {
             String name = getName(desPath);
             String realDesPath = desPath.charAt(0)=='/' ? desPath : nowDir.getPath() + "/" + desPath;
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
+            String newDerEntryPath = (desFather.getPath()+"/"+name).
+                    replaceAll("/+","/");
+            if (newDerEntryPath.equals(srcEntry.getPath())) {
+                throw new PathInvalidException(desPath);
+            }
+            else if (isFather(srcEntry.getPath(), newDerEntryPath)) {
+                throw new PathInvalidException(desPath);
+            }
             if (srcEntry instanceof File) {
-                File desFile = new File(name,(desFather.getPath()+"/"+name).
-                        replaceAll("/+","/"),manager.getCount(),desFather,manager.getNowUser().getName());
+                File desFile = new File(name,newDerEntryPath,manager.getCount(),desFather,manager.getNowUser().getName());
                 desFile.write(((File) srcEntry).cat(),manager.getCount());
                 desFather.addFile(desFile);
                 desFather.setLastTime(manager.getCount());
             }
             else if (srcEntry instanceof Dir) {
-                Dir desDir = new Dir(name,(desFather.getPath()+"/"+name).replaceAll("/+","/"),
+                Dir desDir = new Dir(name,newDerEntryPath,
                         manager.getCount(),desFather,manager.getNowUser().getName());
                 desDir.copy((Dir)srcEntry,manager.getCount(),manager.getNowUser().getName());
                 desFather.addDir(desDir);
