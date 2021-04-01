@@ -450,12 +450,20 @@ public class MyFileSystem implements FileSystem {
             throw new PathInvalidException(srcPath);
         }
         Entry desEntry = findEntry(desPath);
+        // srcPath的异常优先级高于 desPath的异常优先级。
+        // 所以需要将后面的srcEntry的异常抛出提前到此处
+        if (srcEntry instanceof Dir) {
+            if (srcEntry.getPath().equals(nowDir.getPath()) || isFather(srcEntry.getPath(), nowDir.getPath())) {
+                throw new PathInvalidException(srcPath);
+            }
+        }
         if (desEntry == null) {
             String name = getName(desPath);
             String realDesPath = desPath.charAt(0)=='/' ? desPath : nowDir.getPath() + "/" + desPath;
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
             String newDerEntryPath = (desFather.getPath()+"/"+name).
                     replaceAll("/+","/");
+
             if (newDerEntryPath.equals(srcEntry.getPath())) {
                 throw new PathInvalidException(desPath);
             }
@@ -515,9 +523,6 @@ public class MyFileSystem implements FileSystem {
             }
         }
         if (srcEntry instanceof Dir) {
-            if (srcEntry.getPath().equals(nowDir.getPath()) || isFather(srcEntry.getPath(), nowDir.getPath())) {
-                throw new PathInvalidException(srcPath);
-            }
             if (desEntry instanceof Dir) {
                 if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                     throw new PathExistException((desPath + "/" + srcEntry.getName()));
