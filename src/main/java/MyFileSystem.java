@@ -195,11 +195,15 @@ public class MyFileSystem implements FileSystem {
             StringBuilder temp = new StringBuilder();
             while(stack.size() != 0) {
                 temp = temp.insert(0,stack.pop());
-            }
-            if (path.charAt(0) == '/'){
                 temp.insert(0,"/");
             }
-            return temp.toString();
+            if (path.charAt(0) != '/'){
+                return temp.toString().substring(1);
+            }
+            else {
+                return temp.toString();
+            }
+
         }
 
     }
