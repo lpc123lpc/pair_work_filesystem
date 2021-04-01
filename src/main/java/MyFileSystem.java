@@ -586,7 +586,6 @@ public class MyFileSystem implements FileSystem {
                     srcEntry.getFather().setLastTime(manager.getCount());
                     srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).
                             replaceAll("/+", "/"), manager.getCount());
-                    // TODO
                     for (Map.Entry<String, Dir> temp : ((Dir) srcEntry).getSubDir().entrySet()) {
                         if (!temp.getKey().equals(".") && !temp.getKey().equals("..")) {
                             tempDir.addDir(temp.getValue());
@@ -657,11 +656,11 @@ public class MyFileSystem implements FileSystem {
             onlyCopyFile((File) srcEntry, (File) desEntry);
         } else if (srcEntry instanceof Dir && desEntry instanceof Dir) {
             if ((((Dir) desEntry).containsDir(srcEntry.getName()) &&
-                    ((Dir) desEntry).getDir(srcEntry.getName()).getDirCount() == 0) ||
+                    ((Dir) desEntry).getDir(srcEntry.getName()).getDirCount() > 0) ||
                     ((Dir) desEntry).containsFile(srcEntry.getName())) {
                 throw new PathExistException((desPath + "/" + srcEntry.getName()));
             } else if ((((Dir) desEntry).containsDir(srcEntry.getName()) &&
-                    ((Dir) desEntry).getDir(srcEntry.getName()).getDirCount() > 0)) {
+                    ((Dir) desEntry).getDir(srcEntry.getName()).getDirCount() == 0)) {
                 ((Dir) desEntry).getDir(srcEntry.getName()).copy((Dir) srcEntry, manager.getCount(), manager.getNowUser().getName());
                 ((Dir) desEntry).getDir(srcEntry.getName()).setLastTime(manager.getCount());
             } else {
