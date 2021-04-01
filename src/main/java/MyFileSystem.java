@@ -463,16 +463,14 @@ public class MyFileSystem implements FileSystem {
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
             String newDerEntryPath = (desFather.getPath() + "/" + name).
                     replaceAll("/+", "/");
-
             if (newDerEntryPath.equals(srcEntry.getPath())) {
                 throw new PathInvalidException(desPath);
             } else if (isFather(srcEntry.getPath(), newDerEntryPath)) {
+                // desEntry 为空，指导书有点点问题
+                // 按照ln -s中所述，此异常的抛出只在dstEntry为目录且存在时
+                // TODO
                 throw new PathInvalidException(desPath);
             }
-            // 更改srcEntry name
-            // 更改 srcEntry 的 path
-            // 添加到desFather的子目录中
-            // 从srcEntry的Father的子目录中删除
             srcEntry.setPath(newDerEntryPath,manager.getCount());
             if (srcEntry instanceof Dir) {
                 srcEntry.getFather().getSubDir().remove(srcEntry.getName());
@@ -590,6 +588,7 @@ public class MyFileSystem implements FileSystem {
             if (newDerEntryPath.equals(srcEntry.getPath())) {
                 throw new PathInvalidException(desPath);
             } else if (isFather(srcEntry.getPath(), newDerEntryPath)) {
+                // TODO
                 throw new PathInvalidException(desPath);
             }
             if (srcEntry instanceof File) {
