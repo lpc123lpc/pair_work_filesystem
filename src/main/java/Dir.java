@@ -137,7 +137,7 @@ public class Dir implements Entry{
     }
 
     public boolean containsDir(String name){
-        return subFile.containsKey(name);
+        return subDir.containsKey(name);
     }
 
 
