@@ -25,8 +25,9 @@ public class File implements Entry{
     }
 
     @Override
-    public void setPath(String path) {
+    public void setPath(String path, int lastTime) {
         this.path = path;
+        setLastTime(lastTime);
     }
 
     public void setName(String name) {

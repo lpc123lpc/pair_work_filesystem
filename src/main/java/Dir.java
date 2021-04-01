@@ -44,15 +44,17 @@ public class Dir implements Entry{
 
 
     @Override
-    public void setPath(String path) {
+    public void setPath(String path, int lastTime) {
         this.path = path;
+        setLastTime(lastTime);
         for (Map.Entry<String, Dir> temp : subDir.entrySet()) {
             if (!temp.getKey().equals(".") && !temp.getKey().equals("..")) {
-                temp.getValue().setPath((path + "/" + temp.getValue().getName()).replaceAll("/+", "/"));
+                temp.getValue().setPath((path + "/" + temp.getValue().getName()).replaceAll("/+", "/"),
+                        lastTime);
             }
         }
         for (File temp : subFile.values()) {
-            temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"));
+            temp.setPath((path + "/" + temp.getName()).replaceAll("/+", "/"), lastTime);
         }
     }
 
