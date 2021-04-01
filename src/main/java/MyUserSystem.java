@@ -28,11 +28,11 @@ public class MyUserSystem implements UserSystem {
 
     private boolean nameIsInvalid(String name){
         if (name.length() > 128) {
-            return false;
+            return true;
         }
         Pattern regex = Pattern.compile("[a-zA-Z._][a-zA-Z._]*");
         Matcher m = regex.matcher(name);
-        return m.matches();
+        return !m.matches();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class MyUserSystem implements UserSystem {
         if (manager.getNowUser().getPermission() > 1 || username.equals("root")) {
             throw new PermittionException();
         }
-        if (!nameIsInvalid(username)) {
+        if (nameIsInvalid(username)) {
             throw new UserInvalidException(username);
         }
         if (users.containsKey(username)){
@@ -89,7 +89,7 @@ public class MyUserSystem implements UserSystem {
         if (groups.containsKey(groupName)) {
             throw new GroupExistsException(groupName);
         }
-        if (!nameIsInvalid(groupName)) {
+        if (nameIsInvalid(groupName)) {
             throw new GroupInvalidException(groupName);
         }
         groups.put(groupName, new UserGroup(groupName));

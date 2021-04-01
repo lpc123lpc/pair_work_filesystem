@@ -5,7 +5,6 @@ public class Manager {
     private Dir nowDir; //
     private static Manager instance = new Manager();
 
-
     private Manager(){}
 
     public static Manager getInstance(){

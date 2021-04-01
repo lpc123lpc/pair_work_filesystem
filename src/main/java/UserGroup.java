@@ -12,9 +12,6 @@ public class UserGroup {
         users.put(user.getName(),user);
     }
 
-    public HashMap<String, User> getGroup() {
-        return users;
-    }
 
     public String getName() {
         return name;
