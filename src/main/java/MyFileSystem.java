@@ -181,6 +181,10 @@ public class MyFileSystem implements FileSystem {
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
         int i;
+        Entry testEntry = findEntry(path);
+        if (testEntry != null) {
+            throw new PathInvalidException(path);
+        }
         for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
@@ -268,9 +272,8 @@ public class MyFileSystem implements FileSystem {
     public String information(String path) throws FileSystemException {
         update();
         pathLenInvalid(path);
-        Dir targetDir = null;
         Entry tempEntry = findEntry(path);
-        String result = "";
+        String result;
         if (tempEntry == null) {
             throw new PathInvalidException(path);
         } else if (tempEntry instanceof HardLink) {
@@ -316,8 +319,7 @@ public class MyFileSystem implements FileSystem {
         }
         Dir targetDir = nowTempDir.getDir(dirs[len - 1]);
         if (targetDir == null) {
-            File targetFile = nowTempDir.getFile(dirs[len - 1]);
-            return targetFile;
+            return nowTempDir.getFile(dirs[len - 1]);
         } else {
             return targetDir;
         }
@@ -358,7 +360,7 @@ public class MyFileSystem implements FileSystem {
         } else if (desEntry instanceof File) {
             throw new PathExistException(desPath);
         } else if (desEntry instanceof Dir) {
-            if (isFather(srcEntry.getPath(), (desEntry).getPath())) {
+            if (isFather(srcEntry.getPath(), desEntry.getPath())) {
                 throw new PathInvalidException(desPath);
             }
             Dir desDir = (Dir) desEntry;
@@ -461,17 +463,15 @@ public class MyFileSystem implements FileSystem {
             String name = getName(desPath);
             String realDesPath = desPath.charAt(0) == '/' ? desPath : nowDir.getPath() + "/" + desPath;
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
-            String newDerEntryPath = (desFather.getPath() + "/" + name).
+            String newDesEntryPath = (desFather.getPath() + "/" + name).
                     replaceAll("/+", "/");
-            if (newDerEntryPath.equals(srcEntry.getPath())) {
-                throw new PathInvalidException(desPath);
-            } else if (isFather(srcEntry.getPath(), newDerEntryPath)) {
+            if (isFather(srcEntry.getPath(), newDesEntryPath)) {
                 // desEntry 为空，指导书有点点问题
                 // 按照ln -s中所述，此异常的抛出只在dstEntry为目录且存在时
                 // TODO
                 throw new PathInvalidException(desPath);
             }
-            srcEntry.setPath(newDerEntryPath,manager.getCount());
+            srcEntry.setPath(newDesEntryPath,manager.getCount());
             if (srcEntry instanceof Dir) {
                 srcEntry.getFather().getSubDir().remove(srcEntry.getName());
                 srcEntry.setName(name);
@@ -497,7 +497,6 @@ public class MyFileSystem implements FileSystem {
                 throw new PathExistException((desPath + "/" + srcEntry.getName()));
             } else if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                 File srcFile = ((Dir) desEntry).getFile(srcEntry.getName());
-                ((Dir) desEntry).addFile((File) srcEntry);
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
                 onlyCopyFile((File) srcEntry, srcFile);
                 // oldFather modifyTime
@@ -527,7 +526,7 @@ public class MyFileSystem implements FileSystem {
                 if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                     throw new PathExistException((desPath + "/" + srcEntry.getName()));
                 }
-                Dir tempDir = ((Dir) desEntry).getSubDir().get(srcEntry.getName());
+                Dir tempDir = ((Dir) desEntry).getDir(srcEntry.getName());
                 if (tempDir == null ) {
                     if (!((Dir) desEntry).containsFile(srcEntry.getName())) {
                         srcEntry.getFather().getSubDir().remove(srcEntry.getName());
@@ -536,7 +535,6 @@ public class MyFileSystem implements FileSystem {
                         srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()), manager.getCount());
                         ((Dir) desEntry).addDir((Dir) srcEntry);
                         srcEntry.setFather((Dir) desEntry);
-                        ((Dir) srcEntry).setLastTime(manager.getCount());
                         // 考虑到父目录desEntry下子目录数量发生变化，需要更新其最后一次修改时间
                         ((Dir) desEntry).setLastTime(manager.getCount());
                     } else if (((Dir) desEntry).containsFile(srcEntry.getName())){
