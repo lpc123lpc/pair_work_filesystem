@@ -364,7 +364,7 @@ public class MyFileSystem implements FileSystem {
             Dir desDir = (Dir) desEntry;
             String srcName = srcEntry.getName();//srcPath不一定以文件名结尾，直接get
             if (desDir.containsDir(srcName) || desDir.containsFile(srcName)) {
-                throw new PathExistException((desDir.getPath() + "/" + srcName).replaceAll("/+","/"));
+                throw new PathExistException((desDir.getPath() + "/" + srcName));
             } else {
                 SoftLink softLink = new SoftLink(srcName, (desDir.getPath() + "/" + srcName).
                         replaceAll("/+", "/"),
