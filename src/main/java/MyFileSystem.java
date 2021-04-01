@@ -12,7 +12,6 @@ public class MyFileSystem implements FileSystem {
 
     private Dir root = new Dir("/", "/", 0, null, "root");
     private Dir nowDir = root;
-    private PathInvalidException pathInvalidException;
     private Manager manager;
     private String name;
 
@@ -213,13 +212,10 @@ public class MyFileSystem implements FileSystem {
             else {
                 return temp.toString();
             }
-
         }
-
     }
     public String mkdirP(String path, Dir root) throws FileSystemException {
         String result;
-
         Dir nowTempDir = root;
         int i;
         String realPath = getAbPath(path);
@@ -390,7 +386,21 @@ public class MyFileSystem implements FileSystem {
             SoftLink softLink = new SoftLink(name, (desEntryFather.getPath() + "/" + name).
                     replaceAll("/+", "/"),
                     manager.getCount(), desEntryFather, manager.getNowUser().getName());
-            softLink.setPointPath(srcEntry.getPath());
+            if (srcEntry instanceof SoftLink) {
+                softLink.setPointPath(((SoftLink) srcEntry).getPointPath());
+            }
+            else if(srcEntry instanceof HardLink){
+                File file = findFile(((HardLink) srcEntry).getFile().getPath());
+                if (file == null) {
+                    softLink.setPointPath(srcEntry.getPath());
+                }
+                else {
+                    softLink.setPointPath(file.getPath());
+                }
+            }
+            else {
+                softLink.setPointPath(srcEntry.getPath());
+            }
             desEntryFather.addFile(softLink);
             desEntryFather.setLastTime(manager.getCount());
             result = softLink.getPointPath();
@@ -410,7 +420,21 @@ public class MyFileSystem implements FileSystem {
                 SoftLink softLink = new SoftLink(srcName, (desDir.getPath() + "/" + srcName).
                         replaceAll("/+", "/"),
                         manager.getCount(), desDir, manager.getNowUser().getName());
-                softLink.setPointPath(srcEntry.getPath());
+                if (srcEntry instanceof SoftLink) {//如果是软连接，直接得到路径
+                    softLink.setPointPath(((SoftLink) srcEntry).getPointPath());
+                }
+                else if (srcEntry instanceof HardLink){//如果是硬链接，看硬链接指向得文件被删除没有，如果删除了指向硬链接
+                    File file = findFile(((HardLink) srcEntry).getFile().getPath());
+                    if (file == null) {
+                        softLink.setPointPath(srcEntry.getPath());
+                    }
+                    else {
+                        softLink.setPointPath(file.getPath());
+                    }
+                }
+                else {//文件或者目录直接指向
+                    softLink.setPointPath(srcEntry.getPath());
+                }
                 desDir.setLastTime(manager.getCount());
                 desDir.addFile(softLink);
                 result = softLink.getPointPath();
@@ -458,7 +482,21 @@ public class MyFileSystem implements FileSystem {
             Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf('/')));
             HardLink hardLink = new HardLink(desName, (desFather.getPath() + "/" + desName).replaceAll("/+", "/"),
                     manager.getCount(), desFather, manager.getNowUser().getName());
-            hardLink.setFile((File) srcEntry);
+            if (srcEntry instanceof SoftLink) {
+                Entry entry = findEntry(((SoftLink) srcEntry).getPointPath());
+                if (entry == null || entry instanceof Dir) {//
+                    throw new PathInvalidException(srcPath);
+                }
+                else {
+                    hardLink.setFile((File)entry);
+                }
+            }
+            else if (srcEntry instanceof HardLink){
+                hardLink.setFile(((HardLink) srcEntry).getFile());
+            }
+            else {
+                hardLink.setFile((File) srcEntry);
+            }
             desFather.addFile(hardLink);
             desFather.setLastTime(manager.getCount());
             result = hardLink.getPath();
@@ -473,7 +511,21 @@ public class MyFileSystem implements FileSystem {
             }
             HardLink hardLink = new HardLink(srcEntry.getName(), (desDir.getPath() + "/" + srcEntry.getName()).
                     replaceAll("/+", "/"), manager.getCount(), desDir, manager.getNowUser().getName());
-            hardLink.setFile((File) srcEntry);
+            if (srcEntry instanceof SoftLink) {
+                Entry entry = findEntry(((SoftLink) srcEntry).getPointPath());
+                if (entry == null || entry instanceof Dir) {//
+                    throw new PathInvalidException(srcPath);
+                }
+                else {
+                    hardLink.setFile((File)entry);
+                }
+            }
+            else if (srcEntry instanceof HardLink){
+                hardLink.setFile(((HardLink) srcEntry).getFile());
+            }
+            else {
+                hardLink.setFile((File) srcEntry);
+            }
             desDir.addFile(hardLink);
             desDir.setLastTime(manager.getCount());
             result = hardLink.getPath();
@@ -675,13 +727,19 @@ public class MyFileSystem implements FileSystem {
         }
     }
 
-    public void onlyCopyFile(File srcFile, File desFile) {
+    public void onlyCopyFile(File srcFile, File desFile) throws FileSystemException {
         if (srcFile instanceof SoftLink) {
-
+            SoftLink link = new SoftLink(desFile.getName(),desFile.getPath(),desFile.getCreateTime()
+                    ,desFile.getFather(),desFile.getCreateUser());
+            desFile.getFather().addFile(link);
+            link.setLastTime(manager.getCount());
         } else if (srcFile instanceof HardLink) {
             File srcLinkFile = ((HardLink) srcFile).getFile();
             if (desFile instanceof SoftLink) {
-
+                HardLink link = new HardLink(desFile.getName(),desFile.getPath(),desFile.getCreateTime(),
+                        desFile.getFather(),desFile.getCreateUser());
+                link.setLastTime(manager.getCount());
+                desFile.getFather().addFile(link);;
             } else if (desFile instanceof HardLink) {
                 File desLinkFile = ((HardLink) desFile).getFile();
                 desLinkFile.write(srcLinkFile.cat(), manager.getCount());
@@ -690,7 +748,10 @@ public class MyFileSystem implements FileSystem {
             }
         } else {
             if (desFile instanceof SoftLink) {
-                createAndCopyFile(srcFile, desFile.getFather(), desFile.getName());
+                File file = new File(desFile.getName(),desFile.getPath(),desFile.getCreateTime(),
+                        desFile.getFather(),desFile.getCreateUser());
+                file.setLastTime(manager.getCount());
+                desFile.getFather().addFile(file);
             } else if (desFile instanceof HardLink) {
                 File desLinkFIle = ((HardLink) desFile).getFile();
                 desLinkFIle.write(srcFile.cat(), manager.getCount());
