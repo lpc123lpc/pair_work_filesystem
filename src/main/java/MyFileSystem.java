@@ -53,7 +53,7 @@ public class MyFileSystem implements FileSystem {
     }
 
     public Dir findDir(String path) throws FileSystemException {
-        Entry tempEntry = findEntry(path);
+        Entry tempEntry = findEntry(path+"/");
         if (tempEntry instanceof Dir) {
             return (Dir) tempEntry;
         } else if (tempEntry instanceof SoftLink) {
@@ -364,7 +364,7 @@ public class MyFileSystem implements FileSystem {
             Dir desDir = (Dir) desEntry;
             String srcName = srcEntry.getName();//srcPath不一定以文件名结尾，直接get
             if (desDir.containsDir(srcName) || desDir.containsFile(srcName)) {
-                throw new PathExistException(desDir.getPath() + "/" + srcName);
+                throw new PathExistException((desDir.getPath() + "/" + srcName));
             } else {
                 SoftLink softLink = new SoftLink(srcName, (desDir.getPath() + "/" + srcName).
                         replaceAll("/+", "/"),
@@ -393,7 +393,7 @@ public class MyFileSystem implements FileSystem {
     @Override
     public String readLink(String desPath) throws FileSystemException {
         update();
-        File link = findFile(desPath);
+        Entry link = findEntry(desPath);
         if (link instanceof SoftLink) {
             return ((SoftLink) link).getPointPath();
         } else {
@@ -428,7 +428,7 @@ public class MyFileSystem implements FileSystem {
         }  else if (desEntry instanceof Dir) {
             Dir desDir = (Dir) desEntry;
             if (desDir.containsFile(srcEntry.getName()) || desDir.containsDir(srcEntry.getName())) {
-                throw new PathExistException(desPath + "/" + srcEntry.getName());
+                throw new PathExistException((desPath + "/" + srcEntry.getName()));
             }
             HardLink hardLink = new HardLink(srcEntry.getName(), (desDir.getPath() + "/" + srcEntry.getName()).
                     replaceAll("/+", "/"),manager.getCount(), desDir, manager.getNowUser().getName());
@@ -487,7 +487,7 @@ public class MyFileSystem implements FileSystem {
             throw new PathInvalidException(desPath);
         } else if (desEntry instanceof Dir && srcEntry instanceof File) {
             if (((Dir) desEntry).containsDir(srcEntry.getName())) {
-                throw new PathExistException(desPath + "/" + srcEntry.getName());
+                throw new PathExistException((desPath + "/" + srcEntry.getName()));
             } else if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                 File srcFile = ((Dir) desEntry).getFile(srcEntry.getName());
                 ((Dir) desEntry).addFile((File) srcEntry);
@@ -520,14 +520,14 @@ public class MyFileSystem implements FileSystem {
             }
             if (desEntry instanceof Dir) {
                 if (((Dir) desEntry).containsFile(srcEntry.getName())) {
-                    throw new PathExistException(desPath + "/" + srcEntry.getName());
+                    throw new PathExistException((desPath + "/" + srcEntry.getName()));
                 }
                 Dir tempDir = ((Dir) desEntry).getSubDir().get(srcEntry.getName());
                 if (tempDir == null) {
                     srcEntry.getFather().getSubDir().remove(srcEntry.getName());
                     // oldFather modifyTime
                     srcEntry.getFather().setLastTime(manager.getCount());
-                    srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).replaceAll("/+", "/"));
+                    srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()));
                     ((Dir) desEntry).addDir((Dir)srcEntry);
                     srcEntry.setFather((Dir) desEntry);
                     ((Dir) srcEntry).setLastTime(manager.getCount());
@@ -553,10 +553,10 @@ public class MyFileSystem implements FileSystem {
                         tempDir.setLastTime(manager.getCount());
                     }
                 } else if (tempDir.getDirCount() != 0) {
-                    throw new PathExistException(desPath + "/" + srcEntry.getName());
+                    throw new PathExistException((desPath + "/" + srcEntry.getName()));
                 }
             } else if (desEntry instanceof File) {
-                throw new PathExistException(desPath + "/" + srcEntry.getName());
+                throw new PathExistException((desPath + "/" + srcEntry.getName()));
             }
         }
 
@@ -604,7 +604,7 @@ public class MyFileSystem implements FileSystem {
         }
         else if (desEntry instanceof Dir && srcEntry instanceof File){
             if (((Dir) desEntry).containsDir(srcEntry.getName())) {
-                throw new PathExistException(desPath + "/" + srcEntry.getName());
+                throw new PathExistException((desPath + "/" + srcEntry.getName()));
             } else if (((Dir) desEntry).containsFile(srcEntry.getName())) {
                 onlyCopyFile((File)srcEntry,((Dir) desEntry).getFile(srcEntry.getName()));
             } else if (!((Dir) desEntry).containsDir(srcEntry.getName()) &&
@@ -619,7 +619,7 @@ public class MyFileSystem implements FileSystem {
             if ((((Dir) desEntry).containsDir(srcEntry.getName()) &&
                     ((Dir) desEntry).getDir(srcEntry.getName()).getDirCount() == 0 )||
                     ((Dir) desEntry).containsFile(srcEntry.getName()) ){
-                throw new PathExistException(desPath+"/"+ srcEntry.getName());
+                throw new PathExistException((desPath + "/" + srcEntry.getName()));
             }
             else if ((((Dir) desEntry).containsDir(srcEntry.getName()) &&
                     ((Dir) desEntry).getDir(srcEntry.getName()).getDirCount() > 0 )){
@@ -699,7 +699,11 @@ public class MyFileSystem implements FileSystem {
         }
         Entry tempEntry = findEntry(path);
         if (tempEntry instanceof SoftLink) {
-            return findFile(((SoftLink) tempEntry).getPointPath());
+            File file = findFile(((SoftLink) tempEntry).getPointPath());
+            if (file == null) {
+                throw new PathInvalidException(((SoftLink) tempEntry).getPointPath());
+            }
+            return file;
         } else if (tempEntry instanceof HardLink) {
             return ((HardLink) tempEntry).getFile();
         } else if (tempEntry instanceof File){
