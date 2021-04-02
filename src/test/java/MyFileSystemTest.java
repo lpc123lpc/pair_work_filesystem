@@ -318,8 +318,14 @@ public class MyFileSystemTest {
     public void fileAppend() {
         try {
             myFs.fileAppend("/test2.java", "public");
-            myFs.fileAppend("/test2.java", " class");
+
             myFs.fileAppend("/te", "dsa");
+        } catch (FileSystemException e) {
+
+        }
+
+        try {
+            myFs.fileAppend("/test2.java", " class");
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
         }
@@ -334,6 +340,12 @@ public class MyFileSystemTest {
         }
         try {
             myFs.touchFile("/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.touchFile("/error/p");
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
         }

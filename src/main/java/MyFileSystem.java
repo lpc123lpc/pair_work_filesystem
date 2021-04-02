@@ -850,9 +850,6 @@ public class MyFileSystem implements FileSystem {
         int len = dirs.length;
         String abPath = (path.charAt(0) == '/' ? path : nowDir.getPath() + "/" + path);
         nowTempDir = findDir(abPath.substring(0, abPath.lastIndexOf("/")));
-        if (nowTempDir == null) {
-            throw new PathInvalidException(path);
-        }
         result = nowTempDir.getFile(dirs[len - 1]);
         if (result == null) {
             if (nowTempDir.getSubDir().containsKey(dirs[len - 1]) || !nameIsValid(dirs[len - 1])) {
