@@ -19,7 +19,7 @@ public class MyFileSystem implements FileSystem {
         manager = Manager.getInstance();
         manager.setCount(0);
         manager.setNowDir(root);
-        manager.setRootPath("/root");
+        manager.setRootPath("/");
     }
 
     private void update() throws FileSystemException {
