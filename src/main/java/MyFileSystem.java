@@ -303,7 +303,7 @@ public class MyFileSystem implements FileSystem {
         if (tempEntry == null) {
             throw new PathInvalidException(path);
         } else if (tempEntry instanceof HardLink) {
-            result = ((HardLink) tempEntry).getFile().info();
+            result = ((HardLink) tempEntry).info();
         } else {
             result = tempEntry.info();
         }

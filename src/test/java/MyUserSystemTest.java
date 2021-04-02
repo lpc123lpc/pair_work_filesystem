@@ -22,6 +22,8 @@ public class MyUserSystemTest {
     public void setUp() throws Exception {
         manager = Manager.getInstance();
         root = manager.getNowUser();
+        Dir nowDir = new Dir("root","/",0,null,"root");
+        manager.setNowDir(nowDir);
         userSystem.addUser("common");
     }
 
@@ -226,6 +228,7 @@ public class MyUserSystemTest {
     public void exitUser() {
 
         try{
+            manager.setNowUser(root);
             userSystem.exitUser();
         } catch (UserSystemException e) {
             e.printStackTrace();

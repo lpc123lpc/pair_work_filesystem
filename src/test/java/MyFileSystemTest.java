@@ -191,6 +191,16 @@ public class MyFileSystemTest {
     @Test
     public void makeDirectoryRecursively() {
         try {
+            myFs.makeDirectoryRecursively("/testDir/lpc");
+            myFs.linkSoft("testDir","soft");
+            myFs.makeDirectoryRecursively("/soft/lpc/aaa");
+            assertEquals("root root 7 7 0 0 /testDir/lpc/aaa",myFs.information("/soft/lpc/aaa"));
+            myFs.removeRecursively("testDir");
+            myFs.makeDirectoryRecursively("soft");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
             myFs.makeDirectoryRecursively("/home/work/sb/hhh");
             myFs.makeDirectoryRecursively("home/work/sb1/hhh1");
             myFs.makeDirectoryRecursively("home/work/sb1/0");
@@ -238,6 +248,18 @@ public class MyFileSystemTest {
             myFs.information("/home/test/sb/test.txt1");
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.linkHard("test1.java","hardlink");
+            myFs.information("hardlink");
+        } catch (FileSystemException e) {
+            //
+        }
+        try {
+            myFs.linkSoft("test1.java","softlink");
+            myFs.information("softlink");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
         }
     }
 
@@ -352,14 +374,14 @@ public class MyFileSystemTest {
         try {
             myFs.linkSoft("test1.java","softLink");
             myFs.linkHard("softLink","hardlink");
-            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("hardlink"));
+            assertEquals("root root 3 4 20 1 /hardlink",myFs.information("hardlink"));
         } catch (FileSystemException e) {
             //
         }
         try {
             myFs.linkHard("test1.java","hard1");
             myFs.linkHard("hard1","hard2");
-            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("hardlink"));
+            assertEquals("root root 3 4 20 1 /hard2",myFs.information("hard2"));
         } catch (FileSystemException e) {
             //
         }
@@ -382,14 +404,14 @@ public class MyFileSystemTest {
         }
         try{
             myFs.linkHard("test1.java","opt");
-            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("/opt/test1.java"));
+            assertEquals("root root 3 4 20 1 /opt/test1.java",myFs.information("/opt/test1.java"));
         } catch (FileSystemException e) {
             //
         }
         try{
             myFs.linkSoft("test1.java","soft");
             myFs.linkHard("soft","/opt");
-            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("/opt/soft"));
+            assertEquals("root root 3 4 20 1 /opt/soft",myFs.information("/opt/soft"));
         }   catch (FileSystemException e) {
             //
         }
@@ -629,6 +651,27 @@ public class MyFileSystemTest {
             assertTrue(e instanceof PathExistException);
         }
 
+        try {
+            myFs.linkSoft("test1.java","soft");
+            myFs.copy("soft","home");
+            assertEquals("soft test test1.java ",myFs.list("home"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.removeFile("home/soft");
+            myFs.copy("soft","home/cp");
+            assertEquals("cp test test1.java ",myFs.list("home"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.linkHard("/test1.java","hardsrc");
+            myFs.copy("hardsrc","/home/cp");
+            assertEquals("root root 26 29 20 1 /home/cp",myFs.information("/home/cp"));
+        } catch (FileSystemException e) {
+            //
+        }
     }
 
     @Test
