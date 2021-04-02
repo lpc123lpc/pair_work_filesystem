@@ -5,6 +5,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.function.IntConsumer;
+
 import static org.junit.Assert.*;
 
 public class MyFileSystemTest {
@@ -41,9 +43,18 @@ public class MyFileSystemTest {
     public void list() {
         try {
             assertEquals("home opt test1.java ", myFs.list("/"));
+            myFs.makeDirectory("/home/work");
+            assertEquals("work ", myFs.list("/home"));
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
         }
+        try {
+            myFs.linkSoft("/home/work", "/slink");
+            assertEquals("", myFs.list("/slink"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Test
@@ -124,6 +135,34 @@ public class MyFileSystemTest {
     }
 
     @Test
+    public void makeDirectory1() {
+        try {
+            myFs.makeDirectory("/home/work");
+            myFs.linkSoft("/home/work", "/slink");
+            myFs.removeRecursively("/home/work");
+            myFs.makeDirectory("/slink/opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.makeDirectory("/home/work");
+            myFs.linkSoft("/home/work", "/home/slink");
+            myFs.removeRecursively("/home/work");
+            myFs.makeDirectory("/home/slink");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.makeDirectory("/slink/opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+
+        // /home/slink/test
+    }
+
+    @Test
     public void nameIsValid() {
         assertFalse(myFs.nameIsValid("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" +
                 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" +
@@ -134,6 +173,17 @@ public class MyFileSystemTest {
                 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqq" +
                 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" +
                 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"));
+    }
+
+    @Test
+    public void pathLenInvalid(){
+        StringBuilder temp = new StringBuilder();
+        temp.append("sb".repeat(8192));
+        try {
+            myFs.pathLenInvalid(temp.toString());
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
     }
 
     @Test
@@ -165,7 +215,6 @@ public class MyFileSystemTest {
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
         }
-
     }
 
     @Test
@@ -346,11 +395,163 @@ public class MyFileSystemTest {
 
     @Test
     public void readLink() {
+        try {
+            myFs.linkSoft("/home", "/link");
+            assertEquals("/home", myFs.readLink("/link"));
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
 
+        try {
+            myFs.readLink("/");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
     }
 
     @Test
     public void move() {
+        // srcEntry = null
+        try {
+            myFs.move("/error", "/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        // srcEntry instanceof Dir && srcEntry == nowPath || srcEntry is noePath Father
+
+        try {
+            myFs.makeDirectory("/home/sb");
+            myFs.move("/home", "/home/sb");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.move("/", "/error");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.move("/opt", "opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.move("/", "/opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.touchFile("/home/opt");
+            myFs.move("/opt", "/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+
+        try {
+            myFs.touchFile("/home/opt");
+            myFs.move("/opt", "/home/opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+
+    }
+    @Test
+    public void move1() {
+
+        try {
+            myFs.makeDirectory("/usr");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.move("/usr", "/usr/error");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.move("/usr", "/home/work");
+            myFs.move("/test1.java", "/home/test1.java");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            myFs.touchFile("/home/test1");
+            myFs.makeDirectory("/test1");
+            myFs.move("/home/test1", "/");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+
+        try {
+            myFs.removeRecursively("/test1");
+            myFs.touchFile("/test1");
+            myFs.move("/home/test1", "/");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+
+        try {
+            myFs.removeFile("/test1");
+            myFs.touchFile("/home/test1");
+            myFs.move("/home/test1", "/");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.touchFile("/test2");
+            myFs.move("/test2", "/test1");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
+    public void move2() {
+        try {
+            myFs.makeDirectory("/usr");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.touchFile("/home/usr");
+            myFs.move("/usr", "/home/usr");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+        try {
+            myFs.removeFile("/home/usr");
+            myFs.move("/usr", "/home");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            myFs.makeDirectory("/home/usr1");
+            myFs.makeDirectory("/usr1");
+            myFs.makeDirectory("/usr1/oo1");
+            myFs.touchFile("/usr1/file1");
+            myFs.move("/usr1", "/home");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            myFs.makeDirectory("/usr2");
+            myFs.makeDirectory("/home/usr2");
+            myFs.makeDirectory("/home/usr2/oo1");
+            myFs.move("/usr2", "/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
 
     }
 

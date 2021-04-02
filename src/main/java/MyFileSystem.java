@@ -42,7 +42,7 @@ public class MyFileSystem implements FileSystem {
         }
     }
 
-    private void pathLenInvalid(String path) throws FileSystemException {
+    public void pathLenInvalid(String path) throws FileSystemException {
         if (path.length() > 4096) {
             throw new PathInvalidException(path);
         }
@@ -281,9 +281,6 @@ public class MyFileSystem implements FileSystem {
             }
             loopDir = loopDir.getFather();
         }
-        if (targetDir.getName().equals("/")) {
-            throw new PathInvalidException(path);
-        } //if targetDir is root ,exception
         targetDir.getFather().getSubDir().remove(targetDir.getName());
         targetDir.getFather().setLastTime(manager.getCount());
         return targetDir.getPath();
@@ -610,10 +607,7 @@ public class MyFileSystem implements FileSystem {
                         srcEntry.setFather((Dir) desEntry);
                         // 考虑到父目录desEntry下子目录数量发生变化，需要更新其最后一次修改时间
                         ((Dir) desEntry).setLastTime(manager.getCount());
-                    } else if (((Dir) desEntry).containsFile(srcEntry.getName())) {
-                        throw new PathExistException((desPath + "/" + srcEntry.getName()));
                     }
-
                 } else if (tempDir.getDirCount() == 0) {
                     srcEntry.getFather().getSubFile().remove(srcEntry.getName());
                     // oldFather modifyTime
