@@ -40,7 +40,7 @@ public class MyFileSystemTest {
     @Test
     public void list() {
         try {
-            assertEquals("home test1.java ", myFs.list("/"));
+            assertEquals("home opt test1.java ", myFs.list("/"));
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
         }
@@ -176,14 +176,14 @@ public class MyFileSystemTest {
             myFs.makeDirectory("/hhh");
             myFs.makeDirectoryRecursively("/home/test/sb");
             System.out.println("testing");
-            assertEquals("/home/test/sb: 5 5 0", myFs.information("/home/test/sb"));
+            assertEquals("root root 6 6 0 0 /home/test/sb", myFs.information("/home/test/sb"));
             myFs.information("/home/kk/sb");
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
         }
         try {
             myFs.touchFile("/home/test/sb/test.txt");
-            assertEquals("/home/test/sb/test.txt: 8 8 0", myFs.information("/home/test/sb/test.txt"));
+            assertEquals("root root 9 9 0 1 /home/test/sb/test.txt", myFs.information("/home/test/sb/test.txt"));
             myFs.information("/home/test/sb/test.txt1");
         } catch (FileSystemException e) {
             assertTrue(e instanceof PathInvalidException);
@@ -196,8 +196,62 @@ public class MyFileSystemTest {
     }
 
     @Test
-    public void linkHard() {
-
+    public void linkHard() throws FileSystemException {
+        try {
+            myFs.linkHard("test1.javaklsjd","linkHard");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.linkSoft("/home","test");
+            myFs.linkHard("test","linkHard");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.linkSoft("test1.java","softLink");
+            myFs.linkHard("softLink","hardlink");
+            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("hardlink"));
+        } catch (FileSystemException e) {
+            //
+        }
+        try {
+            myFs.linkHard("test1.java","hard1");
+            myFs.linkHard("hard1","hard2");
+            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("hardlink"));
+        } catch (FileSystemException e) {
+            //
+        }
+        try {
+            myFs.linkHard("test1.java","test1.java");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.touchFile("testLink");
+            myFs.linkHard("test1.java","testLink");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+        try {
+            myFs.touchFile("/home/test1.java");
+            myFs.linkHard("test1.java","/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+        try{
+            myFs.linkHard("test1.java","opt");
+            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("/opt/test1.java"));
+        } catch (FileSystemException e) {
+            //
+        }
+        try{
+            myFs.linkSoft("test1.java","soft");
+            myFs.linkHard("soft","/opt");
+            assertEquals("root root 3 4 20 1 /test1.java",myFs.information("/opt/soft"));
+        }   catch (FileSystemException e) {
+            //
+        }
     }
 
     @Test
