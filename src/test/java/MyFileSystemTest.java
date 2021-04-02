@@ -356,6 +356,75 @@ public class MyFileSystemTest {
 
     @Test
     public void copy() {
+        try{
+            myFs.copy("skaljf","test");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.copy("/","/home/test");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try{
+            myFs.copy("test1.java","/home/test");
+        } catch (FileSystemException e) {
+            //
+        }
+        try {
+            myFs.copy("/home","test");
+        } catch (FileSystemException e) {
+            //
+        }
+        try {
+            myFs.copy("/home","/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.copy("/","/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        try {
+            myFs.copy("test1.java","/home");
+        } catch (FileSystemException e) {
+            //
+        }
+        try {
+            myFs.copy("test1.java","/home");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+        try {
+            myFs.touchFile("file2");
+            myFs.copy("test1.java","file2");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.touchFile("/opt/home");
+            myFs.copy("/home","/opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+        try {
+            myFs.removeFile("/opt/home");
+            myFs.makeDirectory("/opt/home");
+            myFs.copy("/home","/opt");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.copy("/home","/opt/home");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+        try {
+            myFs.copy("/home","test1.java");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
 
     }
 

@@ -13,7 +13,6 @@ public class MyFileSystem implements FileSystem {
     private Dir root = new Dir("/", "/", 0, null, "root");
     private Dir nowDir = root;
     private Manager manager;
-    private String name;
 
     public MyFileSystem() {
         root.setFather(root);
@@ -580,7 +579,7 @@ public class MyFileSystem implements FileSystem {
                 srcEntry.getFather().getSubFile().remove(srcEntry.getName());
                 srcEntry.getFather().setLastTime(manager.getCount());
                 srcEntry.setFather((Dir) desEntry);
-                srcEntry.setPath((desEntry.getPath() + "/" + name).replaceAll("/+", "/"), manager.getCount());
+                srcEntry.setPath((desEntry.getPath() + "/" + srcEntry.getName()).replaceAll("/+", "/"), manager.getCount());
                 ((Dir) desEntry).addFile((File) srcEntry);
                 ((Dir) desEntry).setLastTime(manager.getCount());
             }

@@ -83,7 +83,7 @@ public class FileTest {
 
     @Test
     public void info() {
-        String act = file.getPath()+": "+ file.getCreateTime() +" "+file.getLastTime()+" "+file.cat().length();
+        String act = "shshhs shshhs 1 1 0 1 /root/file";
         assertEquals(act,file.info());
     }
 }

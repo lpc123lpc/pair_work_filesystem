@@ -113,8 +113,7 @@ public class DirTest {
 
     @Test
     public void info() {
-        assertEquals(root.getPath() + ": " + root.getCreateTime()
-                + " " + root.getLastTime() + " " + root.getSize(),root.info());
+        assertEquals("root root 0 0 0 4 /root",root.info());
     }
 
     @Test
