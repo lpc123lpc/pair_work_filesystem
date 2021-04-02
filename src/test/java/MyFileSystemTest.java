@@ -193,6 +193,96 @@ public class MyFileSystemTest {
     @Test
     public void linkSoft() {
 
+        // srcEntry == null
+        try {
+            myFs.linkSoft("/error", "/slink");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        // desEntry == null && desPath.endWith("/");
+        try {
+            myFs.linkSoft("/opt", "/slink/");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        // srcEntryPath == desEntryPath
+        try {
+            myFs.linkSoft("/opt", "/opt");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        // desEntry instanceof File
+        try {
+            myFs.linkSoft("/opt", "/test1.java");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+        // desEntry instanceof Dir && srcEntryPath is desEntryPath father
+        try {
+            myFs.makeDirectory("/home/work");
+            myFs.linkSoft("/home", "/home/work");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.linkSoft("/home", "/slink");
+            myFs.linkSoft("/slink", "/slink2");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        // srcEntry instanceof HardLink
+        try {
+            myFs.touchFile("/home/file1");
+            myFs.linkHard("/home/file1", "/hLink");
+            myFs.linkSoft("/hLink","/slink3");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+
+        try {
+            myFs.removeFile("/home/file1");
+            myFs.linkSoft("/hLink","/slink4");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathInvalidException);
+        }
+        //
+        try {
+            myFs.makeDirectory("/home/work/opt");
+            myFs.makeDirectory("/usr");
+            myFs.linkSoft("/opt", "/home/work");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+
+        try {
+            myFs.linkSoft("/usr", "/home/work");
+        } catch (FileSystemException e) {
+            assertTrue(e instanceof PathExistException);
+        }
+
+        try {
+            myFs.linkSoft("/slink", "/home/work");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            myFs.touchFile("/home/file1");
+            myFs.linkSoft("/hLink", "/home/work");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            myFs.removeFile("/home/file1");
+            myFs.removeFile("/home/work/hLink");
+            myFs.linkSoft("/hLink", "/home/work");
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Test
