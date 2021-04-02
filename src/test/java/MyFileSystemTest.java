@@ -178,7 +178,9 @@ public class MyFileSystemTest {
     @Test
     public void pathLenInvalid(){
         StringBuilder temp = new StringBuilder();
-        temp.append("sb".repeat(8192));
+        for (int i = 0; i < 8192; i++) {
+            temp.append("sb");
+        }
         try {
             myFs.pathLenInvalid(temp.toString());
         } catch (FileSystemException e) {
