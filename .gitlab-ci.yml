@@ -53,8 +53,8 @@ submit_code:
     - pjcourse config add judge  # register the judge service
     - pjcourse config info judge  # try connect to the judge service
     - pjcourse homework list judge  # get to know all the available homeworks
-    - pjcourse homework submit judge homework_2  # submit your homework (homework_1 is the name of homework, may be changed when 2st, 3rd homeworks)
-    - pjcourse homework history judge homework_2  # get your submit history
+    #- pjcourse homework submit judge homework_2  # submit your homework (homework_1 is the name of homework, may be changed when 2st, 3rd homeworks)
+    #- pjcourse homework history judge homework_2  # get your submit history
     - pjcourse judge result judge homework_2_final  # 查看详细信息
     - pjcourse judge result judge homework_2_final -a  # 查看摘要信息
 
