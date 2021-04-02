@@ -624,10 +624,7 @@ public class MyFileSystem implements FileSystem {
                         tempDir.addFile(temp);
                         temp.setFather(tempDir);
                     }
-                    //覆盖之后，子目录和文件数量发生变化时，更改最后一次修改时间
-                    if (tempDir.getDirCount() > 0) {
-                        tempDir.setLastTime(manager.getCount());
-                    }
+                    tempDir.setLastTime(manager.getCount());
                 } else if (tempDir.getDirCount() != 0) {
                     throw new PathExistException((desPath + "/" + srcEntry.getName()));
                 }
