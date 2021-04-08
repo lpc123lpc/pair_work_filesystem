@@ -313,6 +313,7 @@ public class MyFileSystem implements FileSystem {
     }
 
     public Entry findEntry(String path) throws FileSystemException {
+        String realPath = path.substring(0, path.length() - 1);
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         Dir loopDir = nowTempDir;
         String[] dirs = path.split("/+");
@@ -323,18 +324,18 @@ public class MyFileSystem implements FileSystem {
                 if (nowTempDir == null) {
                     File loopFile = loopDir.getFile(dirs[i]);
                     if (loopFile == null) {
-                        throw new PathInvalidException(path);
+                        throw new PathInvalidException(realPath);
                     } else if (loopFile instanceof HardLink) {
-                        throw new PathInvalidException(path);
+                        throw new PathInvalidException(realPath);
                     } else if (loopFile instanceof SoftLink) {
                         Entry loopEntry = findEntry(((SoftLink) loopFile).getPointPath());
                         if (loopEntry instanceof Dir) {
                             nowTempDir = (Dir) loopEntry;
                         } else {
-                            throw new PathInvalidException(path);
+                            throw new PathInvalidException(realPath);
                         }
                     } else {
-                        throw new PathInvalidException(path);
+                        throw new PathInvalidException(realPath);
                     }
                 }
                 loopDir = nowTempDir;
