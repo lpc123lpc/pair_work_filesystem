@@ -416,11 +416,7 @@ public class MyFileSystem implements FileSystem {
                     softLink.setPointPath(((SoftLink) srcEntry).getPointPath());
                 } else if (srcEntry instanceof HardLink) {//如果是硬链接，看硬链接指向得文件被删除没有，如果删除了指向硬链接
                     File file = findFile(((HardLink) srcEntry).getFile().getPath());
-                    if (file == null) {
-                        softLink.setPointPath(srcEntry.getPath());
-                    } else {
-                        softLink.setPointPath(file.getPath());
-                    }
+                    softLink.setPointPath(srcEntry.getPath());
                 } else {//文件或者目录直接指向
                     softLink.setPointPath(srcEntry.getPath());
                 }
