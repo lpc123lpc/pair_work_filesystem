@@ -387,11 +387,7 @@ public class MyFileSystem implements FileSystem {
                 softLink.setPointPath(((SoftLink) srcEntry).getPointPath());
             } else if (srcEntry instanceof HardLink) {
                 File file = findFile(((HardLink) srcEntry).getFile().getPath());
-                if (file == null) {
-                    softLink.setPointPath(srcEntry.getPath());
-                } else {
-                    softLink.setPointPath(file.getPath());
-                }
+                softLink.setPointPath(srcEntry.getPath());
             } else {
                 softLink.setPointPath(srcEntry.getPath());
             }
