@@ -275,12 +275,12 @@ public class MyFileSystem implements FileSystem {
             throw new PathInvalidException(path);
         }
         Dir loopDir = nowDir;
-        while (!loopDir.getName().equals("/")) {
+        do {
             if (loopDir == targetDir) {
                 throw new PathInvalidException(path);
             }
             loopDir = loopDir.getFather();
-        }
+        } while (!loopDir.getName().equals("/"));
         targetDir.getFather().getSubDir().remove(targetDir.getName());
         targetDir.getFather().setLastTime(manager.getCount());
         return targetDir.getPath();
