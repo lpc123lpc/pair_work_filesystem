@@ -61,14 +61,16 @@ public class MyFileSystem implements FileSystem {
         return nowDir.getPath();
     }
 
-    public Dir findDir(String path) throws FileSystemException {
-        Entry tempEntry = findEntry(path + "/", path);
+    public Dir findDir(String... paths) throws FileSystemException {
+        String path = paths[0];
+        String realPath = paths.length > 1 ? paths[1] : paths[0];
+        Entry tempEntry = findEntry(path + "/", realPath);
         if (tempEntry instanceof Dir) {
             return (Dir) tempEntry;
         } else if (tempEntry instanceof SoftLink) {
             return findDir(((SoftLink) tempEntry).getPointPath());
         } else {
-            throw new PathInvalidException(path);
+            throw new PathInvalidException(realPath);
         }
     }
 
@@ -377,7 +379,7 @@ public class MyFileSystem implements FileSystem {
             // desEntry对应路径文件不存在，需要先找到被创建链接文件的Father和他的name
             String name = getName(desPath);//当创建文件的时候，末尾必定是文件名
             String realDesPath = desPath.charAt(0) == '/' ? desPath : nowDir.getPath() + "/" + desPath;
-            Dir desEntryFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf('/')));
+            Dir desEntryFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf('/')), desPath);
             SoftLink softLink = new SoftLink(name, (desEntryFather.getPath() + "/" + name).
                     replaceAll("/+", "/"),
                     manager.getCount(), desEntryFather, manager.getNowUser().getName());
@@ -464,7 +466,7 @@ public class MyFileSystem implements FileSystem {
             // 如果硬链接文件对应路径不存在，则需要找到需要创建硬链接的Father和Name;
             String desName = getName(desPath);
             String realDesPath = desPath.charAt(0) == '/' ? desPath : nowDir.getPath() + "/" + desPath;
-            Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf('/')));
+            Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf('/')), desPath);
             HardLink hardLink = new HardLink(desName, (desFather.getPath() + "/" + desName).replaceAll("/+", "/"),
                     manager.getCount(), desFather, manager.getNowUser().getName());
             if (srcEntry instanceof SoftLink) {
@@ -532,7 +534,7 @@ public class MyFileSystem implements FileSystem {
         if (desEntry == null) {
             String name = getName(desPath);
             String realDesPath = desPath.charAt(0) == '/' ? desPath : nowDir.getPath() + "/" + desPath;
-            Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
+            Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")), desPath);
             String newDesEntryPath = (desFather.getPath() + "/" + name).
                     replaceAll("/+", "/");
             if (isFather(srcEntry.getPath(), newDesEntryPath)) {
@@ -646,7 +648,7 @@ public class MyFileSystem implements FileSystem {
         if (desEntry == null) {
             String name = getName(desPath);
             String realDesPath = desPath.charAt(0) == '/' ? desPath : nowDir.getPath() + "/" + desPath;
-            Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")));
+            Dir desFather = findDir(realDesPath.substring(0, realDesPath.lastIndexOf("/")), desPath);
             String newDerEntryPath = (desFather.getPath() + "/" + name).
                     replaceAll("/+", "/");
             if (isFather(srcEntry.getPath(), newDerEntryPath)) {
@@ -839,7 +841,7 @@ public class MyFileSystem implements FileSystem {
         String[] dirs = path.split("/+");
         int len = dirs.length;
         String abPath = (path.charAt(0) == '/' ? path : nowDir.getPath() + "/" + path);
-        nowTempDir = findDir(abPath.substring(0, abPath.lastIndexOf("/")));
+        nowTempDir = findDir(abPath.substring(0, abPath.lastIndexOf("/")), path);
         result = nowTempDir.getFile(dirs[len - 1]);
         if (result == null) {
             if (nowTempDir.getSubDir().containsKey(dirs[len - 1]) || !nameIsValid(dirs[len - 1])) {
