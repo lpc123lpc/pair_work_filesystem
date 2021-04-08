@@ -213,9 +213,9 @@ public class MyFileSystem implements FileSystem {
         String result;
         Dir nowTempDir = root;
         int i;
-        String realPath = getAbPath(path);
-        String[] dirs = realPath.split("/+");
-        for (i = realPath.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
+        //String realPath = getAbPath(path);
+        String[] dirs = path.split("/+");
+        for (i = path.charAt(0) == '/' ? 1 : 0; i < dirs.length; ++i) {
             Dir loopDir = nowTempDir.getDir(dirs[i]);
             if (loopDir == null) {
                 File loopFile = nowTempDir.getFile(dirs[i]);
