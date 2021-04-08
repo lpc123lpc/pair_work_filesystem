@@ -99,7 +99,9 @@ public class MyFileSystem implements FileSystem {
 
     public String mkdir(String path, Dir root) throws FileSystemException {
         String result = null;
-        rootChange(path); /// mkdir /  path = "/" , path.split = [];
+        if (path.replaceAll("/+", "/").equals("/")) {
+            throw new PathExistException(path);
+        }
         String[] dirs = path.split("/+");
         Dir nowTempDir = root;
         int i;
