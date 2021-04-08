@@ -62,7 +62,7 @@ public class MyFileSystem implements FileSystem {
     }
 
     public Dir findDir(String path) throws FileSystemException {
-        Entry tempEntry = findEntry(path + "/");
+        Entry tempEntry = findEntry(path);
         if (tempEntry instanceof Dir) {
             return (Dir) tempEntry;
         } else if (tempEntry instanceof SoftLink) {
@@ -313,7 +313,7 @@ public class MyFileSystem implements FileSystem {
     }
 
     public Entry findEntry(String path) throws FileSystemException {
-        String realPath = path.substring(0, path.length() - 1);
+        String realPath = path;
         Dir nowTempDir = path.charAt(0) == '/' ? root : nowDir;
         Dir loopDir = nowTempDir;
         String[] dirs = path.split("/+");
